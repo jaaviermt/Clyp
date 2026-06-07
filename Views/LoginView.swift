@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct LoginView: View {
+    var onAuthenticated: () -> Void = {}
+
     @State private var viewModel = AuthViewModel()
     @State private var email = ""
     @State private var password = ""
@@ -55,10 +57,11 @@ struct LoginView: View {
     private var footer: some View {
         VStack(spacing: AppSpacing.md) {
             PrimaryCTAButton(title: "Log In") {
-                // Future authentication via viewModel
+                // Real authentication via viewModel goes here.
+                onAuthenticated()
             }
             NavigationLink {
-                RegisterView()
+                RegisterView(onAuthenticated: onAuthenticated)
             } label: {
                 HStack(spacing: AppSpacing.xs) {
                     Text("Don't have an account?")

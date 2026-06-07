@@ -8,25 +8,40 @@
 import SwiftUI
 
 struct SplashView: View {
-    @State private var showLogin = false
+    @State private var stage: Stage = .splash
+
+    private enum Stage {
+        case splash, auth, main
+    }
 
     var body: some View {
         ZStack {
-            if showLogin {
+            switch stage {
+            case .splash:
+                splash.transition(.opacity)
+            case .auth:
                 NavigationStack {
-                    LoginView()
+                    LoginView(onAuthenticated: advanceToMain)
                 }
                 .transition(.opacity)
-            } else {
-                splash
-                    .transition(.opacity)
+            case .main:
+                NavigationStack {
+                    DiscoverView()
+                }
+                .transition(.opacity)
             }
         }
         .task {
             try? await Task.sleep(for: .seconds(1.5))
             withAnimation(.easeInOut(duration: 0.4)) {
-                showLogin = true
+                stage = .auth
             }
+        }
+    }
+
+    private func advanceToMain() {
+        withAnimation(.easeInOut(duration: 0.4)) {
+            stage = .main
         }
     }
 

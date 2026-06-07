@@ -11,7 +11,7 @@ import SwiftUI
 struct ClypApp: App {
     var body: some Scene {
         WindowGroup {
-            ComponentShowcaseView()
+            SplashView()
         }
     }
 }

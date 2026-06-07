@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RegisterView: View {
+    var onAuthenticated: () -> Void = {}
+
     @State private var viewModel = AuthViewModel()
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
@@ -60,7 +62,8 @@ struct RegisterView: View {
     private var footer: some View {
         VStack(spacing: AppSpacing.md) {
             PrimaryCTAButton(title: "Create Account") {
-                // Future registration via viewModel
+                // Real registration via viewModel goes here.
+                onAuthenticated()
             }
             Button {
                 dismiss()
