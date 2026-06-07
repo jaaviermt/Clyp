@@ -15,51 +15,69 @@ struct LoginView: View {
     @State private var password = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xxl) {
-            header
-            fields
-            Spacer(minLength: AppSpacing.xl)
-            footer
+        GeometryReader { geo in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    Spacer(minLength: AppSpacing.xxxl)
+
+                    VStack(spacing: AppSpacing.xxxl) {
+                        brand
+                        form
+                        cta
+                    }
+
+                    Spacer(minLength: AppSpacing.xxxl)
+                }
+                .padding(.horizontal, AppSpacing.xl)
+                .frame(minHeight: geo.size.height)
+                .frame(maxWidth: .infinity)
+            }
         }
-        .padding(AppSpacing.lg)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppColors.cream.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            LogoView(font: AppTypography.displayLG, logoSize: 28)
-            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+    // MARK: - Sections
+
+    private var brand: some View {
+        VStack(spacing: AppSpacing.lg) {
+            LogoView(font: AppTypography.displayMD, logoSize: 40)
+
+            VStack(spacing: AppSpacing.xs) {
                 Text("Welcome back")
-                    .font(AppTypography.displayMD)
+                    .font(AppTypography.displayLG)
                     .foregroundStyle(AppColors.ink)
-                Text("Movies that match your soul.")
+                    .lineLimit(1)
+                Text("Pick up where you left off.")
                     .font(AppTypography.body)
                     .foregroundStyle(AppColors.ink.opacity(0.6))
             }
+            .multilineTextAlignment(.center)
         }
-        .padding(.top, AppSpacing.xl)
     }
 
-    private var fields: some View {
+    private var form: some View {
         VStack(spacing: AppSpacing.md) {
             TextField("Email", text: $email)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-                .underlinedField()
+                .textContentType(.emailAddress)
+                .pillField()
+
             SecureField("Password", text: $password)
-                .underlinedField()
+                .textContentType(.password)
+                .pillField()
         }
     }
 
-    private var footer: some View {
-        VStack(spacing: AppSpacing.md) {
+    private var cta: some View {
+        VStack(spacing: AppSpacing.lg) {
             PrimaryCTAButton(title: "Log In") {
                 // Real authentication via viewModel goes here.
                 onAuthenticated()
             }
+
             NavigationLink {
                 RegisterView(onAuthenticated: onAuthenticated)
             } label: {
@@ -77,16 +95,14 @@ struct LoginView: View {
 }
 
 private extension View {
-    func underlinedField() -> some View {
+    func pillField() -> some View {
         self
             .font(AppTypography.body)
             .foregroundStyle(AppColors.ink)
-            .padding(.vertical, AppSpacing.sm)
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundStyle(AppColors.ink.opacity(0.2))
-            }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.md)
+            .background(AppColors.silverScreen)
+            .clipShape(Capsule())
     }
 }
 
