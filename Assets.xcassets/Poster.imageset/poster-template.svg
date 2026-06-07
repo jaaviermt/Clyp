@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300" width="200" height="300" role="img" aria-label="Clyp poster template">
+  <!-- Background color A (poster_palette[0]) -->
+  <rect width="200" height="300" rx="14" fill="#FFC700"/>
+  <!-- Left sprocket strip -->
+  <rect x="0" y="0" width="14" height="300" fill="#111111" opacity="0.9"/>
+  <g fill="#FFF7E6">
+    <rect x="5" y="14"  width="4" height="4" rx="1"/>
+    <rect x="5" y="48"  width="4" height="4" rx="1"/>
+    <rect x="5" y="82"  width="4" height="4" rx="1"/>
+    <rect x="5" y="116" width="4" height="4" rx="1"/>
+    <rect x="5" y="150" width="4" height="4" rx="1"/>
+    <rect x="5" y="184" width="4" height="4" rx="1"/>
+    <rect x="5" y="218" width="4" height="4" rx="1"/>
+    <rect x="5" y="252" width="4" height="4" rx="1"/>
+  </g>
+  <!-- Right sprocket strip -->
+  <rect x="186" y="0" width="14" height="300" fill="#111111" opacity="0.9"/>
+  <g fill="#FFF7E6">
+    <rect x="191" y="14"  width="4" height="4" rx="1"/>
+    <rect x="191" y="48"  width="4" height="4" rx="1"/>
+    <rect x="191" y="82"  width="4" height="4" rx="1"/>
+    <rect x="191" y="116" width="4" height="4" rx="1"/>
+    <rect x="191" y="150" width="4" height="4" rx="1"/>
+    <rect x="191" y="184" width="4" height="4" rx="1"/>
+    <rect x="191" y="218" width="4" height="4" rx="1"/>
+    <rect x="191" y="252" width="4" height="4" rx="1"/>
+  </g>
+  <!-- Sun / lens disc (poster_palette[1]) -->
+  <circle cx="180" cy="260" r="80" fill="#FF4D00" opacity="0.95"/>
+  <!-- Small ring -->
+  <circle cx="160" cy="50" r="20" fill="none" stroke="#FF4D00" stroke-width="4"/>
+  <!-- Title block -->
+  <text x="25" y="240" font-family="Helvetica Neue, Inter, sans-serif" font-weight="900"
+        font-size="34" letter-spacing="-1.5" fill="#111111">TITLE</text>
+  <text x="25" y="270" font-family="Helvetica Neue, Inter, sans-serif" font-weight="700"
+        font-size="9" letter-spacing="2" fill="#111111" opacity="0.8">2024</text>
+  <text x="175" y="270" font-family="Helvetica Neue, Inter, sans-serif" font-weight="700"
+        font-size="9" letter-spacing="2" fill="#111111" opacity="0.8" text-anchor="end">TI</text>
+</svg>

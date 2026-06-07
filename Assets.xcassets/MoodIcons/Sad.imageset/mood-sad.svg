@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="120" height="120" fill="none" stroke="#FFF7E6" stroke-width="3" stroke-linecap="round" role="img" aria-label="Sad mood">
+  <rect width="40" height="40" fill="#2A5BFF"/>
+  <path d="M6 20a14 14 0 0 1 28 0v12H6z"/>
+  <circle cx="14" cy="18" r="1.5" fill="#FFF7E6"/>
+  <circle cx="26" cy="18" r="1.5" fill="#FFF7E6"/>
+  <path d="M14 27c2-2 4-3 6-3s4 1 6 3"/>
+</svg>
