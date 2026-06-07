@@ -121,7 +121,10 @@ struct DiscoverView: View {
 
     private var cta: some View {
         PrimaryCTAButton(title: "Continue") {
-            guard selectedMood != nil else { return }
+            guard let mood = selectedMood else { return }
+            if let id = mood.id_mood {
+                LocalStorageService.shared.lastSelectedMoodId = id
+            }
             showRecommendations = true
         }
         .disabled(selectedMood == nil)

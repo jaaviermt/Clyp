@@ -20,6 +20,7 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         static let favoriteMovieIds   = "clyp.local.favoriteMovieIds"
         static let watchedMovieIds    = "clyp.local.watchedMovieIds"
         static let lastSelectedMoodId = "clyp.local.lastSelectedMoodId"
+        static let movieRatings       = "clyp.local.movieRatings"
     }
 
     // MARK: - Favorites
@@ -89,6 +90,29 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         }
     }
 
+    // MARK: - Movie ratings
+
+    /// 1–5 star rating per movie. Backed by `[String: Int]` because
+    /// UserDefaults requires string keys for dictionaries.
+    func rating(for movieId: Int) -> Int? {
+        let raw = defaults.dictionary(forKey: Key.movieRatings) as? [String: Int] ?? [:]
+        return raw[String(movieId)]
+    }
+
+    func setRating(_ rating: Int, for movieId: Int) {
+        var raw = defaults.dictionary(forKey: Key.movieRatings) as? [String: Int] ?? [:]
+        if rating <= 0 {
+            raw.removeValue(forKey: String(movieId))
+        } else {
+            raw[String(movieId)] = rating
+        }
+        defaults.set(raw, forKey: Key.movieRatings)
+    }
+
+    func removeRating(for movieId: Int) {
+        setRating(0, for: movieId)
+    }
+
     // MARK: - Maintenance
 
     /// Wipes all locally cached preferences.
@@ -97,5 +121,6 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         defaults.removeObject(forKey: Key.favoriteMovieIds)
         defaults.removeObject(forKey: Key.watchedMovieIds)
         defaults.removeObject(forKey: Key.lastSelectedMoodId)
+        defaults.removeObject(forKey: Key.movieRatings)
     }
 }

@@ -11,6 +11,9 @@ struct MovieDetailView: View {
     let movie: Movie
 
     @State private var isFavorite: Bool = false
+    @State private var isWatched: Bool = false
+    @State private var userRating: Int = 0
+    @State private var showReviewSheet: Bool = false
 
     /// Mock-mode mood lookup. When the API is live this should come
     /// from a shared store (e.g. injected via environment or a VM).
@@ -39,7 +42,14 @@ struct MovieDetailView: View {
                 favoriteButton
             }
         }
-        .onAppear(perform: syncFavoriteState)
+        .onAppear {
+            syncFavoriteState()
+            syncWatchedState()
+            syncRatingState()
+        }
+        .sheet(isPresented: $showReviewSheet, onDismiss: syncRatingState) {
+            ReviewSheet(movie: movie)
+        }
     }
 
     // MARK: - Sections
@@ -82,14 +92,31 @@ struct MovieDetailView: View {
     }
 
     private var rating: some View {
-        RatingStars(rating: 0, size: 18)
+        Button {
+            showReviewSheet = true
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                RatingStars(rating: userRating, size: 18)
+                Text(userRating > 0 ? "Tap to edit" : "Tap to rate")
+                    .font(AppTypography.eyebrow)
+                    .textCase(.uppercase)
+                    .foregroundStyle(AppColors.ink.opacity(0.6))
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var ctaBar: some View {
-        PrimaryCTAButton(title: "Mark as Watched") {
-            // TODO: integrate with POST /watched/save
-            // Body: { "id_user": <session>, "id_movie": movie.id_movie }
+        PrimaryCTAButton(title: isWatched ? "Watched" : "Mark as Watched") {
+            guard !isWatched, let id = movie.id_movie else { return }
+            withAnimation(AppAnimations.favorites) {
+                LocalStorageService.shared.markWatched(id)
+                isWatched = true
+            }
         }
+        .disabled(isWatched)
+        .opacity(isWatched ? 0.5 : 1)
+        .animation(AppAnimations.tap, value: isWatched)
         .padding(AppSpacing.lg)
     }
 
@@ -119,6 +146,22 @@ struct MovieDetailView: View {
             return
         }
         isFavorite = LocalStorageService.shared.isFavorite(id)
+    }
+
+    private func syncWatchedState() {
+        guard let id = movie.id_movie else {
+            isWatched = false
+            return
+        }
+        isWatched = LocalStorageService.shared.hasWatched(id)
+    }
+
+    private func syncRatingState() {
+        guard let id = movie.id_movie else {
+            userRating = 0
+            return
+        }
+        userRating = LocalStorageService.shared.rating(for: id) ?? 0
     }
 }
 
