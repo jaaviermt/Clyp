@@ -10,6 +10,8 @@ import SwiftUI
 struct MovieDetailView: View {
     let movie: Movie
 
+    @State private var isFavorite: Bool = false
+
     /// Mock-mode mood lookup. When the API is live this should come
     /// from a shared store (e.g. injected via environment or a VM).
     private var resolvedMood: Mood? {
@@ -32,6 +34,12 @@ struct MovieDetailView: View {
             ctaBar
         }
         .background(AppColors.cream.ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                favoriteButton
+            }
+        }
+        .onAppear(perform: syncFavoriteState)
     }
 
     // MARK: - Sections
@@ -84,16 +92,38 @@ struct MovieDetailView: View {
         }
         .padding(AppSpacing.lg)
     }
-}
 
-#Preview("Happy") {
-    NavigationStack {
-        MovieDetailView(movie: MockData.movies[0])
+    // MARK: - Favorite
+
+    private var favoriteButton: some View {
+        Button(action: toggleFavorite) {
+            Image(systemName: isFavorite ? "heart.fill" : "heart")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(isFavorite ? AppColors.heartbeat : AppColors.ink)
+                .scaleEffect(isFavorite ? 1.1 : 1.0)
+        }
+        .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
+    }
+
+    private func toggleFavorite() {
+        guard let id = movie.id_movie else { return }
+        withAnimation(AppAnimations.favorites) {
+            LocalStorageService.shared.toggleFavorite(id)
+            isFavorite.toggle()
+        }
+    }
+
+    private func syncFavoriteState() {
+        guard let id = movie.id_movie else {
+            isFavorite = false
+            return
+        }
+        isFavorite = LocalStorageService.shared.isFavorite(id)
     }
 }
 
-#Preview("Romantic") {
+#Preview {
     NavigationStack {
-        MovieDetailView(movie: MockData.movies[3])
+        MovieDetailView(movie: MockData.movies[0])
     }
 }
