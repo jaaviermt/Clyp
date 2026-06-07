@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Movie: Codable {
+nonisolated struct Movie: Codable {
     let id_movie: Int?
     let title: String
     let description: String?

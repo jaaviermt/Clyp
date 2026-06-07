@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WatchedMovie: Codable {
+nonisolated struct WatchedMovie: Codable {
     let id: Int?
     let id_user: Int
     let id_movie: Int

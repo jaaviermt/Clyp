@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Genre: Codable {
+nonisolated struct Genre: Codable {
     let id_genre: Int?
     let name: String
 }

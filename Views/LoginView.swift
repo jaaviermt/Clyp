@@ -29,7 +29,7 @@ struct LoginView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            LogoView(font: AppTypography.displayLG, dotSize: 10)
+            LogoView(font: AppTypography.displayLG, logoSize: 28)
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Welcome back")
                     .font(AppTypography.displayMD)

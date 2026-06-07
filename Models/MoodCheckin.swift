@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MoodCheckin: Codable {
+nonisolated struct MoodCheckin: Codable {
     let id_checkin: Int?
     let id_user: Int
     let id_mood: Int

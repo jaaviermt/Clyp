@@ -46,16 +46,18 @@ struct SplashView: View {
     }
 
     private var splash: some View {
-        VStack(spacing: AppSpacing.md) {
+        VStack(spacing: AppSpacing.lg) {
             Spacer()
-            LogoView()
-            Text("Movies that match your soul.")
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.ink.opacity(0.6))
+            VStack(spacing: AppSpacing.sm) {
+                Image("LogoMark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
+            }
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.cream.ignoresSafeArea())
+        .background(AppColors.clypOrange.ignoresSafeArea())
     }
 }
 

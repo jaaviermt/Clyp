@@ -28,7 +28,7 @@ enum Endpoint {
     case getAllWatched
     case saveWatched(id_user: Int, id_movie: Int)
 
-    var path: String {
+    nonisolated var path: String {
         switch self {
         case .getAllMoods:    return "/mood/getAll"
         case .saveMood:       return "/mood/save"
@@ -43,7 +43,7 @@ enum Endpoint {
         }
     }
 
-    var method: HTTPMethod {
+    nonisolated var method: HTTPMethod {
         switch self {
         case .getAllMoods, .getAllMovies, .getAllUsers, .getAllCheckins, .getAllWatched:
             return .get
@@ -52,7 +52,7 @@ enum Endpoint {
         }
     }
 
-    func makeBody(encoder: JSONEncoder) throws -> Data? {
+    nonisolated func makeBody(encoder: JSONEncoder) throws -> Data? {
         switch self {
         case .getAllMoods, .getAllMovies, .getAllUsers, .getAllCheckins, .getAllWatched:
             return nil

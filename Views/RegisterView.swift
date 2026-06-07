@@ -31,7 +31,7 @@ struct RegisterView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.lg) {
-            LogoView(font: AppTypography.displayLG, dotSize: 10)
+            LogoView()
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text("Create account")
                     .font(AppTypography.displayMD)

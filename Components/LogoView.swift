@@ -9,16 +9,19 @@ import SwiftUI
 
 struct LogoView: View {
     var font: Font = AppTypography.displayXL
-    var dotSize: CGFloat = 12
+    var logoSize: CGFloat = 32
+    var textColor: Color = AppColors.ink
 
     var body: some View {
         HStack(spacing: AppSpacing.xs) {
-            Text("CLYP")
+            Image("LogoMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: logoSize, height: logoSize)
+            
+            Text("Clyp")
                 .font(font)
-                .foregroundStyle(AppColors.ink)
-            Circle()
-                .fill(AppColors.clypOrange)
-                .frame(width: dotSize, height: dotSize)
+                .foregroundStyle(textColor)
         }
     }
 }

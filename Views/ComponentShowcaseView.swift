@@ -57,7 +57,7 @@ struct ComponentShowcaseView: View {
         section("LogoView") {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 LogoView()
-                LogoView(font: AppTypography.displayMD, dotSize: 8)
+                LogoView(font: AppTypography.displayMD, logoSize: 24)
             }
         }
     }
