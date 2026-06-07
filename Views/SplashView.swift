@@ -25,10 +25,8 @@ struct SplashView: View {
                 }
                 .transition(.opacity)
             case .main:
-                NavigationStack {
-                    DiscoverView()
-                }
-                .transition(.opacity)
+                MainTabView()
+                    .transition(.opacity)
             }
         }
         .task {
