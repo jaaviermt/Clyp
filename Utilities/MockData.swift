@@ -9,8 +9,14 @@ import Foundation
 
 enum MockData {
     /// Single switch to alternate between mock data and the real API.
-    /// Flip to `false` once the backend is reachable.
-    static let useMockData = true
+    /// Persisted in UserDefaults so the Debug sheet can flip it at runtime.
+    /// Defaults to `true` until the backend is reachable.
+    private static let useMockDataKey = "clyp.debug.useMockData"
+
+    static var useMockData: Bool {
+        get { UserDefaults.standard.object(forKey: useMockDataKey) as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: useMockDataKey) }
+    }
 
     static let mockUser = User(
         id_user: 1,

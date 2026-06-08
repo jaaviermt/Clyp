@@ -8,17 +8,22 @@
 import SwiftUI
 
 struct ProfileView: View {
+    var onLogout: () -> Void = {}
+
     @State private var watchedCount: Int = 0
     @State private var favoritesCount: Int = 0
     @State private var currentMood: Mood?
     @State private var userName: String?
     @State private var userEmail: String?
+    @State private var showDebugSheet: Bool = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 header
                 stats
+                logoutButton
+                    .padding(.top, AppSpacing.xl)
             }
             .padding(AppSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -26,6 +31,10 @@ struct ProfileView: View {
         .background(AppColors.cream.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear(perform: refresh)
+        .sheet(isPresented: $showDebugSheet) {
+            DebugConfigSheet()
+        }
+        .sensoryFeedback(.success, trigger: showDebugSheet)
     }
 
     // MARK: - Sections
@@ -50,6 +59,11 @@ struct ProfileView: View {
                 .truncationMode(.middle)
         }
         .padding(.top, AppSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 1.5) {
+            showDebugSheet = true
+        }
     }
 
     private var stats: some View {
@@ -99,6 +113,26 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+    }
+
+    // MARK: - Logout
+
+    private var logoutButton: some View {
+        Button(action: performLogout) {
+            Text("Log out")
+                .font(AppTypography.label)
+                .foregroundStyle(AppColors.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, AppSpacing.md)
+                .background(AppColors.silverScreen)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(PressableScaleStyle())
+    }
+
+    private func performLogout() {
+        LocalStorageService.shared.clearAll()
+        onLogout()
     }
 
     // MARK: - Refresh

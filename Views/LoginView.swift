@@ -13,6 +13,8 @@ struct LoginView: View {
     @State private var viewModel = AuthViewModel()
     @State private var email = ""
     @State private var password = ""
+    @State private var emailError: String?
+    @State private var passwordError: String?
 
     var body: some View {
         GeometryReader { geo in
@@ -58,29 +60,45 @@ struct LoginView: View {
 
     private var form: some View {
         VStack(spacing: AppSpacing.md) {
-            TextField("Email", text: $email)
-                .keyboardType(.emailAddress)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textContentType(.emailAddress)
-                .pillField()
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                TextField("Email", text: $email)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .textContentType(.emailAddress)
+                    .pillField()
+                    .onChange(of: email) { _, _ in
+                        if emailError != nil {
+                            withAnimation(AppAnimations.tap) { emailError = nil }
+                        }
+                    }
 
-            SecureField("Password", text: $password)
-                .textContentType(.password)
-                .pillField()
+                if let emailError {
+                    errorLabel(emailError)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                SecureField("Password", text: $password)
+                    .textContentType(.password)
+                    .pillField()
+                    .onChange(of: password) { _, _ in
+                        if passwordError != nil {
+                            withAnimation(AppAnimations.tap) { passwordError = nil }
+                        }
+                    }
+
+                if let passwordError {
+                    errorLabel(passwordError)
+                }
+            }
         }
     }
 
     private var cta: some View {
         VStack(spacing: AppSpacing.lg) {
             PrimaryCTAButton(title: "Log In") {
-                // Real authentication via viewModel goes here.
-                // Mock: persist a session locally so Profile can read it.
-                let user = MockData.mockUser
-                LocalStorageService.shared.currentUserId    = user.id_user
-                LocalStorageService.shared.currentUserName  = user.name
-                LocalStorageService.shared.currentUserEmail = user.email
-                onAuthenticated()
+                attemptLogin()
             }
 
             NavigationLink {
@@ -96,6 +114,33 @@ struct LoginView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func errorLabel(_ message: String) -> some View {
+        Text(message)
+            .font(AppTypography.bodySM)
+            .foregroundStyle(AppColors.heartbeat)
+            .padding(.leading, AppSpacing.lg)
+            .transition(.opacity)
+    }
+
+    private func attemptLogin() {
+        withAnimation(AppAnimations.tap) {
+            emailError    = AuthValidation.emailError(for: email)
+            passwordError = AuthValidation.passwordError(for: password)
+        }
+
+        guard emailError == nil, passwordError == nil else { return }
+
+        // Real authentication via viewModel goes here.
+        // Mock: persist a session locally so Profile can read it.
+        let user = MockData.mockUser
+        LocalStorageService.shared.currentUserId    = user.id_user
+        LocalStorageService.shared.currentUserName  = user.name
+        LocalStorageService.shared.currentUserEmail = user.email
+        onAuthenticated()
     }
 }
 

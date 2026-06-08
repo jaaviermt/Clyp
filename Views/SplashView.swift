@@ -25,7 +25,7 @@ struct SplashView: View {
                 }
                 .transition(.opacity)
             case .main:
-                MainTabView()
+                MainTabView(onLogout: handleLogout)
                     .transition(.opacity)
             }
         }
@@ -40,6 +40,12 @@ struct SplashView: View {
     private func advanceToMain() {
         withAnimation(.easeInOut(duration: 0.4)) {
             stage = .main
+        }
+    }
+
+    private func handleLogout() {
+        withAnimation(.easeInOut(duration: 0.4)) {
+            stage = .auth
         }
     }
 

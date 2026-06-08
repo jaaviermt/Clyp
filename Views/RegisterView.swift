@@ -15,6 +15,9 @@ struct RegisterView: View {
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
+    @State private var nameError: String?
+    @State private var emailError: String?
+    @State private var passwordError: String?
 
     var body: some View {
         GeometryReader { geo in
@@ -60,35 +63,61 @@ struct RegisterView: View {
 
     private var form: some View {
         VStack(spacing: AppSpacing.md) {
-            TextField("Name", text: $name)
-                .textInputAutocapitalization(.words)
-                .textContentType(.name)
-                .pillField()
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                TextField("Name", text: $name)
+                    .textInputAutocapitalization(.words)
+                    .textContentType(.name)
+                    .pillField()
+                    .onChange(of: name) { _, _ in
+                        if nameError != nil {
+                            withAnimation(AppAnimations.tap) { nameError = nil }
+                        }
+                    }
 
-            TextField("Email", text: $email)
-                .keyboardType(.emailAddress)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .textContentType(.emailAddress)
-                .pillField()
+                if let nameError {
+                    errorLabel(nameError)
+                }
+            }
 
-            SecureField("Password", text: $password)
-                .textContentType(.newPassword)
-                .pillField()
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                TextField("Email", text: $email)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .textContentType(.emailAddress)
+                    .pillField()
+                    .onChange(of: email) { _, _ in
+                        if emailError != nil {
+                            withAnimation(AppAnimations.tap) { emailError = nil }
+                        }
+                    }
+
+                if let emailError {
+                    errorLabel(emailError)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                SecureField("Password", text: $password)
+                    .textContentType(.newPassword)
+                    .pillField()
+                    .onChange(of: password) { _, _ in
+                        if passwordError != nil {
+                            withAnimation(AppAnimations.tap) { passwordError = nil }
+                        }
+                    }
+
+                if let passwordError {
+                    errorLabel(passwordError)
+                }
+            }
         }
     }
 
     private var cta: some View {
         VStack(spacing: AppSpacing.lg) {
             PrimaryCTAButton(title: "Create Account") {
-                // Real registration via viewModel goes here.
-                // Mock: store whatever the user typed, falling back to mockUser
-                // for empty fields, so Profile feels populated.
-                let storage = LocalStorageService.shared
-                storage.currentUserId    = MockData.mockUser.id_user
-                storage.currentUserName  = name.isEmpty  ? MockData.mockUser.name  : name
-                storage.currentUserEmail = email.isEmpty ? MockData.mockUser.email : email
-                onAuthenticated()
+                attemptRegister()
             }
 
             Button {
@@ -104,6 +133,34 @@ struct RegisterView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func errorLabel(_ message: String) -> some View {
+        Text(message)
+            .font(AppTypography.bodySM)
+            .foregroundStyle(AppColors.heartbeat)
+            .padding(.leading, AppSpacing.lg)
+            .transition(.opacity)
+    }
+
+    private func attemptRegister() {
+        withAnimation(AppAnimations.tap) {
+            nameError     = AuthValidation.nameError(for: name)
+            emailError    = AuthValidation.emailError(for: email)
+            passwordError = AuthValidation.passwordError(for: password)
+        }
+
+        guard nameError == nil, emailError == nil, passwordError == nil else { return }
+
+        // Real registration via viewModel goes here.
+        // Mock: store the form values, falling back to mockUser for safety.
+        let storage = LocalStorageService.shared
+        storage.currentUserId    = MockData.mockUser.id_user
+        storage.currentUserName  = name.trimmingCharacters(in: .whitespaces)
+        storage.currentUserEmail = email.trimmingCharacters(in: .whitespaces)
+        onAuthenticated()
     }
 }
 

@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MainTabView: View {
+    var onLogout: () -> Void = {}
+
     @State private var selectedTab: BottomNav.Tab = .discover
 
     var body: some View {
@@ -20,7 +22,7 @@ struct MainTabView: View {
                     NavigationStack { MyListView() }
                 }
                 tab(.profile) {
-                    NavigationStack { ProfileView() }
+                    NavigationStack { ProfileView(onLogout: onLogout) }
                 }
             }
 
