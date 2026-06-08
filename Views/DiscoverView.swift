@@ -21,6 +21,7 @@ struct DiscoverView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xl) {
+            logoBar
             header
             content
             cta
@@ -28,6 +29,7 @@ struct DiscoverView: View {
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppColors.cream.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
         .task { await viewModel.loadMoods() }
         .navigationDestination(isPresented: $showRecommendations) {
             if let mood = selectedMood {
@@ -38,6 +40,13 @@ struct DiscoverView: View {
 
     // MARK: - Sections
 
+    private var logoBar: some View {
+        HStack(spacing: 0) {
+            LogoView(font: AppTypography.displaySM, logoSize: 24)
+            Spacer()
+        }
+    }
+
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text("How are you feeling?")
@@ -47,7 +56,6 @@ struct DiscoverView: View {
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.ink.opacity(0.6))
         }
-        .padding(.top, AppSpacing.lg)
     }
 
     @ViewBuilder

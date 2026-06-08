@@ -22,6 +22,7 @@ struct ProfileView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(AppColors.cream.ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear(perform: refresh)
     }
 

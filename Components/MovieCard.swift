@@ -10,9 +10,17 @@ import SwiftUI
 struct MovieCard: View {
     let movie: Movie
     var mood: Mood?
-    var rating: Int?
+
+    /// Optional override. When nil, the card reads the rating
+    /// from `LocalStorageService` (1...5). 0 / nil hides the row.
+    var rating: Int? = nil
 
     @State private var isFavorite: Bool = false
+    @State private var storedRating: Int = 0
+
+    private var effectiveRating: Int {
+        rating ?? storedRating
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -36,15 +44,18 @@ struct MovieCard: View {
                     MoodChip(mood: mood)
                 }
                 Spacer(minLength: 0)
-                if let rating {
-                    RatingStars(rating: rating)
+                if effectiveRating > 0 {
+                    RatingStars(rating: effectiveRating)
                 }
             }
         }
-        .onAppear(perform: syncFavoriteState)
+        .onAppear {
+            syncFavoriteState()
+            syncRatingState()
+        }
     }
 
-    // MARK: - Favorite badge
+    // MARK: - Badges
 
     private var favoriteBadge: some View {
         Image(systemName: "heart.fill")
@@ -55,6 +66,8 @@ struct MovieCard: View {
             .clipShape(Circle())
     }
 
+    // MARK: - Sync
+
     private func syncFavoriteState() {
         guard let id = movie.id_movie else {
             isFavorite = false
@@ -63,5 +76,13 @@ struct MovieCard: View {
         withAnimation(AppAnimations.favorites) {
             isFavorite = LocalStorageService.shared.isFavorite(id)
         }
+    }
+
+    private func syncRatingState() {
+        guard let id = movie.id_movie else {
+            storedRating = 0
+            return
+        }
+        storedRating = LocalStorageService.shared.rating(for: id) ?? 0
     }
 }
