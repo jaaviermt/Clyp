@@ -82,6 +82,12 @@ struct RegisterView: View {
         VStack(spacing: AppSpacing.lg) {
             PrimaryCTAButton(title: "Create Account") {
                 // Real registration via viewModel goes here.
+                // Mock: store whatever the user typed, falling back to mockUser
+                // for empty fields, so Profile feels populated.
+                let storage = LocalStorageService.shared
+                storage.currentUserId    = MockData.mockUser.id_user
+                storage.currentUserName  = name.isEmpty  ? MockData.mockUser.name  : name
+                storage.currentUserEmail = email.isEmpty ? MockData.mockUser.email : email
                 onAuthenticated()
             }
 

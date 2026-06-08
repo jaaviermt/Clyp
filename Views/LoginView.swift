@@ -75,6 +75,11 @@ struct LoginView: View {
         VStack(spacing: AppSpacing.lg) {
             PrimaryCTAButton(title: "Log In") {
                 // Real authentication via viewModel goes here.
+                // Mock: persist a session locally so Profile can read it.
+                let user = MockData.mockUser
+                LocalStorageService.shared.currentUserId    = user.id_user
+                LocalStorageService.shared.currentUserName  = user.name
+                LocalStorageService.shared.currentUserEmail = user.email
                 onAuthenticated()
             }
 

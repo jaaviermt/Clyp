@@ -11,6 +11,8 @@ struct ProfileView: View {
     @State private var watchedCount: Int = 0
     @State private var favoritesCount: Int = 0
     @State private var currentMood: Mood?
+    @State private var userName: String?
+    @State private var userEmail: String?
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -30,12 +32,22 @@ struct ProfileView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("Profile")
+            Text(userName != nil ? "Welcome back" : "Profile")
+                .font(AppTypography.eyebrow)
+                .textCase(.uppercase)
+                .foregroundStyle(AppColors.ink.opacity(0.6))
+
+            Text(userName ?? "Your Profile")
                 .font(AppTypography.displayLG)
                 .foregroundStyle(AppColors.ink)
-            Text("Your taste at a glance.")
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+
+            Text(userEmail ?? "Your taste at a glance.")
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.ink.opacity(0.6))
+                .lineLimit(1)
+                .truncationMode(.middle)
         }
         .padding(.top, AppSpacing.md)
     }
@@ -95,6 +107,8 @@ struct ProfileView: View {
         let storage = LocalStorageService.shared
         watchedCount   = storage.watchedMovieIds.count
         favoritesCount = storage.favoriteMovieIds.count
+        userName       = storage.currentUserName
+        userEmail      = storage.currentUserEmail
 
         if let moodId = storage.lastSelectedMoodId {
             currentMood = MockData.moods.first { $0.id_mood == moodId }

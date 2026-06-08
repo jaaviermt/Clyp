@@ -21,6 +21,9 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         static let watchedMovieIds    = "clyp.local.watchedMovieIds"
         static let lastSelectedMoodId = "clyp.local.lastSelectedMoodId"
         static let movieRatings       = "clyp.local.movieRatings"
+        static let currentUserId      = "clyp.local.currentUserId"
+        static let currentUserName    = "clyp.local.currentUserName"
+        static let currentUserEmail   = "clyp.local.currentUserEmail"
     }
 
     // MARK: - Favorites
@@ -113,6 +116,45 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         setRating(0, for: movieId)
     }
 
+    // MARK: - Current user (session)
+
+    /// Lightweight session record kept locally so Profile can render
+    /// without re-fetching. Password is intentionally NOT stored.
+    /// When the real API lands, the login response populates these.
+
+    var currentUserId: Int? {
+        get { defaults.object(forKey: Key.currentUserId) as? Int }
+        set {
+            if let newValue {
+                defaults.set(newValue, forKey: Key.currentUserId)
+            } else {
+                defaults.removeObject(forKey: Key.currentUserId)
+            }
+        }
+    }
+
+    var currentUserName: String? {
+        get { defaults.string(forKey: Key.currentUserName) }
+        set {
+            if let newValue {
+                defaults.set(newValue, forKey: Key.currentUserName)
+            } else {
+                defaults.removeObject(forKey: Key.currentUserName)
+            }
+        }
+    }
+
+    var currentUserEmail: String? {
+        get { defaults.string(forKey: Key.currentUserEmail) }
+        set {
+            if let newValue {
+                defaults.set(newValue, forKey: Key.currentUserEmail)
+            } else {
+                defaults.removeObject(forKey: Key.currentUserEmail)
+            }
+        }
+    }
+
     // MARK: - Maintenance
 
     /// Wipes all locally cached preferences.
@@ -122,5 +164,8 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         defaults.removeObject(forKey: Key.watchedMovieIds)
         defaults.removeObject(forKey: Key.lastSelectedMoodId)
         defaults.removeObject(forKey: Key.movieRatings)
+        defaults.removeObject(forKey: Key.currentUserId)
+        defaults.removeObject(forKey: Key.currentUserName)
+        defaults.removeObject(forKey: Key.currentUserEmail)
     }
 }

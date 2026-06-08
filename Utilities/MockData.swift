@@ -12,6 +12,14 @@ enum MockData {
     /// Flip to `false` once the backend is reachable.
     static let useMockData = true
 
+    static let mockUser = User(
+        id_user: 1,
+        name: "Javier Murillo",
+        email: "javier@clyp.app",
+        password: "mockpass",
+        created_at: "2026-06-01T12:34:56Z"
+    )
+
     static let moods: [Mood] = [
         Mood(id_mood: 1, name: "Happy",     description: "Feel-good vibes."),
         Mood(id_mood: 2, name: "Sad",       description: "Slow-burn drama."),
