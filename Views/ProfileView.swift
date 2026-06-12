@@ -13,6 +13,7 @@ struct ProfileView: View {
 
     @State private var watchedCount: Int = 0
     @State private var favoritesCount: Int = 0
+    @State private var checkinCount: Int = 0
     @State private var currentMood: Mood?
     @State private var userName: String?
     @State private var userEmail: String?
@@ -107,7 +108,7 @@ struct ProfileView: View {
                     statCard(value: "\(watchedCount)", label: "Movies Watched")
                 }
                 .buttonStyle(.plain)
-                
+
                 NavigationLink {
                     FavoritesListView()
                 } label: {
@@ -115,7 +116,12 @@ struct ProfileView: View {
                 }
                 .buttonStyle(.plain)
             }
-            currentMoodCard
+            NavigationLink {
+                MoodCheckinHistoryView()
+            } label: {
+                currentMoodCard
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -156,10 +162,16 @@ struct ProfileView: View {
                 .foregroundStyle(foreground)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text("Current Mood")
-                .font(AppTypography.eyebrow)
-                .textCase(.uppercase)
-                .foregroundStyle(foreground.opacity(0.7))
+            HStack {
+                Text(checkinCount == 0 ? "Current Mood" : "Current Mood · \(checkinCount) check-in\(checkinCount == 1 ? "" : "s")")
+                    .font(AppTypography.eyebrow)
+                    .textCase(.uppercase)
+                    .foregroundStyle(foreground.opacity(0.7))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(foreground.opacity(0.7))
+            }
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -188,6 +200,7 @@ struct ProfileView: View {
         let storage = LocalStorageService.shared
         watchedCount   = storage.watchedMovieIds.count
         favoritesCount = storage.favoriteMovieIds.count
+        checkinCount   = storage.allCheckins.count
         userName       = storage.currentUserName
         userEmail      = storage.currentUserEmail
 

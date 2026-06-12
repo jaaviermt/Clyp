@@ -40,9 +40,17 @@ struct RecommendationsView: View {
             Text("Recommendations")
                 .font(AppTypography.displayLG)
                 .foregroundStyle(AppColors.ink)
-            Text("Movies for your \(selectedMood.name) mood")
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.ink.opacity(0.6))
+            (
+                Text("Movies for your ")
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.ink.opacity(0.6))
+                + Text(selectedMood.name)
+                    .font(AppTypography.label)
+                    .foregroundStyle(selectedMood.color)
+                + Text(" mood")
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.ink.opacity(0.6))
+            )
         }
         .padding(.top, AppSpacing.md)
     }

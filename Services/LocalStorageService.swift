@@ -27,6 +27,7 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         static let currentUserEmail   = "clyp.local.currentUserEmail"
         static let didJustRegister    = "clyp.local.didJustRegister"
         static let hideWatchedMovies  = "clyp.local.hideWatchedMovies"
+        static let moodCheckins       = "clyp.local.moodCheckins"
     }
 
     // MARK: - Favorites
@@ -155,6 +156,43 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         }
     }
 
+    // MARK: - Mood Check-ins
+
+    var allCheckins: [MoodCheckin] {
+        guard let data = defaults.data(forKey: Key.moodCheckins),
+              let checkins = try? JSONDecoder().decode([MoodCheckin].self, from: data)
+        else { return [] }
+        return checkins
+    }
+
+    /// Creates a new check-in (nil id_checkin) or updates an existing one.
+    func saveCheckin(_ checkin: MoodCheckin) {
+        var checkins = allCheckins
+        if let id = checkin.id_checkin,
+           let idx = checkins.firstIndex(where: { $0.id_checkin == id }) {
+            checkins[idx] = checkin
+        } else {
+            let nextId = (checkins.compactMap(\.id_checkin).max() ?? 0) + 1
+            checkins.append(MoodCheckin(
+                id_checkin: nextId,
+                id_user: checkin.id_user,
+                id_mood: checkin.id_mood,
+                checkin_time: checkin.checkin_time
+            ))
+        }
+        if let data = try? JSONEncoder().encode(checkins) {
+            defaults.set(data, forKey: Key.moodCheckins)
+        }
+    }
+
+    func deleteCheckin(id: Int) {
+        var checkins = allCheckins
+        checkins.removeAll { $0.id_checkin == id }
+        if let data = try? JSONEncoder().encode(checkins) {
+            defaults.set(data, forKey: Key.moodCheckins)
+        }
+    }
+
     // MARK: - Current user (session)
 
     /// Lightweight session record kept locally so Profile can render
@@ -227,5 +265,7 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         let allKeys = defaults.dictionaryRepresentation().keys
         let reviewKeys = allKeys.filter { $0.hasPrefix(Key.movieReviews) }
         reviewKeys.forEach { defaults.removeObject(forKey: $0) }
+
+        defaults.removeObject(forKey: Key.moodCheckins)
     }
 }
