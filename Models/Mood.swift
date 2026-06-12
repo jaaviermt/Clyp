@@ -7,7 +7,7 @@
 
 import Foundation
 
-nonisolated struct Mood: Codable {
+nonisolated struct Mood: Codable, Equatable {
     let id_mood: Int?
     let name: String
     let description: String?

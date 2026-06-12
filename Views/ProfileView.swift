@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    var refreshToken: UUID = UUID()
     var onLogout: () -> Void = {}
 
     @State private var watchedCount: Int = 0
@@ -15,14 +16,16 @@ struct ProfileView: View {
     @State private var currentMood: Mood?
     @State private var userName: String?
     @State private var userEmail: String?
+    @State private var welcomeLabel: String = "Profile"
     @State private var showDebugSheet: Bool = false
+    @State private var showEditProfile: Bool = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 header
                 stats
-                logoutButton
+                logoutSection
                     .padding(.top, AppSpacing.xl)
             }
             .padding(AppSpacing.lg)
@@ -30,9 +33,21 @@ struct ProfileView: View {
         }
         .background(AppColors.cream.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear(perform: refresh)
+        .onAppear { refresh(consumeRegisterFlag: false) }
+        .onChange(of: refreshToken) { _, _ in refresh(consumeRegisterFlag: true) }
         .sheet(isPresented: $showDebugSheet) {
             DebugConfigSheet()
+        }
+        .sheet(isPresented: $showEditProfile) {
+            NavigationStack {
+                ProfileEditView()
+            }
+        }
+        .onChange(of: showEditProfile) { _, isShowing in
+            if !isShowing {
+                // Refresh profile data when edit sheet dismisses
+                refresh(consumeRegisterFlag: false)
+            }
         }
         .sensoryFeedback(.success, trigger: showDebugSheet)
     }
@@ -41,22 +56,39 @@ struct ProfileView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text(userName != nil ? "Welcome back" : "Profile")
+            Text(welcomeLabel)
                 .font(AppTypography.eyebrow)
                 .textCase(.uppercase)
                 .foregroundStyle(AppColors.ink.opacity(0.6))
 
-            Text(userName ?? "Your Profile")
-                .font(AppTypography.displayLG)
-                .foregroundStyle(AppColors.ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            HStack {
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text(userName ?? "Your Profile")
+                        .font(AppTypography.displayLG)
+                        .foregroundStyle(AppColors.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
 
-            Text(userEmail ?? "Your taste at a glance.")
-                .font(AppTypography.body)
-                .foregroundStyle(AppColors.ink.opacity(0.6))
-                .lineLimit(1)
-                .truncationMode(.middle)
+                    Text(userEmail ?? "Your taste at a glance.")
+                        .font(AppTypography.body)
+                        .foregroundStyle(AppColors.ink.opacity(0.6))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                
+                Spacer()
+                
+                Button {
+                    showEditProfile = true
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(AppColors.clypOrange)
+                        .padding(AppSpacing.sm)
+                        .background(AppColors.silverScreen)
+                        .clipShape(Circle())
+                }
+            }
         }
         .padding(.top, AppSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -69,8 +101,19 @@ struct ProfileView: View {
     private var stats: some View {
         VStack(spacing: AppSpacing.md) {
             HStack(spacing: AppSpacing.md) {
-                statCard(value: "\(watchedCount)",   label: "Movies Watched")
-                statCard(value: "\(favoritesCount)", label: "Favorites")
+                NavigationLink {
+                    WatchedListView()
+                } label: {
+                    statCard(value: "\(watchedCount)", label: "Movies Watched")
+                }
+                .buttonStyle(.plain)
+                
+                NavigationLink {
+                    FavoritesListView()
+                } label: {
+                    statCard(value: "\(favoritesCount)", label: "Favorites")
+                }
+                .buttonStyle(.plain)
             }
             currentMoodCard
         }
@@ -83,10 +126,19 @@ struct ProfileView: View {
                 .foregroundStyle(AppColors.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-            Text(label)
-                .font(AppTypography.eyebrow)
-                .textCase(.uppercase)
-                .foregroundStyle(AppColors.ink.opacity(0.6))
+            
+            HStack(spacing: AppSpacing.xs) {
+                Text(label)
+                    .font(AppTypography.eyebrow)
+                    .textCase(.uppercase)
+                    .foregroundStyle(AppColors.ink.opacity(0.6))
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.clypOrange)
+            }
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -115,29 +167,24 @@ struct ProfileView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
     }
 
-    // MARK: - Logout
-
-    private var logoutButton: some View {
-        Button(action: performLogout) {
-            Text("Log out")
-                .font(AppTypography.label)
-                .foregroundStyle(AppColors.ink)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, AppSpacing.md)
-                .background(AppColors.silverScreen)
-                .clipShape(Capsule())
+    private var logoutSection: some View {
+        SecondaryCTAButton(title: "Log out") {
+            performLogout()
         }
-        .buttonStyle(PressableScaleStyle())
     }
+
+    // MARK: - Actions
 
     private func performLogout() {
         LocalStorageService.shared.clearAll()
         onLogout()
     }
 
-    // MARK: - Refresh
-
-    private func refresh() {
+    /// `consumeRegisterFlag = false` is used by the initial `.onAppear`,
+    /// which fires when MainTabView mounts (before the user has actually
+    /// visited Profile). `true` is used by the refreshToken-driven refresh
+    /// that fires only when the user selects the Profile tab.
+    private func refresh(consumeRegisterFlag: Bool) {
         let storage = LocalStorageService.shared
         watchedCount   = storage.watchedMovieIds.count
         favoritesCount = storage.favoriteMovieIds.count
@@ -148,6 +195,19 @@ struct ProfileView: View {
             currentMood = MockData.moods.first { $0.id_mood == moodId }
         } else {
             currentMood = nil
+        }
+
+        if userName != nil {
+            if storage.didJustRegister {
+                if consumeRegisterFlag {
+                    storage.didJustRegister = false
+                }
+                welcomeLabel = "Welcome"
+            } else {
+                welcomeLabel = "Welcome back"
+            }
+        } else {
+            welcomeLabel = "Profile"
         }
     }
 }

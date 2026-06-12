@@ -12,7 +12,13 @@ struct RecommendationsView: View {
 
     private var filteredMovies: [Movie] {
         guard let moodId = selectedMood.id_mood else { return [] }
-        return MockData.movies.filter { $0.id_mood == moodId }
+        let movies = MockData.movies.filter { $0.id_mood == moodId }
+        guard LocalStorageService.shared.hideWatchedMovies else { return movies }
+        let watched = LocalStorageService.shared.watchedMovieIds
+        return movies.filter { movie in
+            guard let id = movie.id_movie else { return true }
+            return !watched.contains(id)
+        }
     }
 
     var body: some View {
@@ -70,15 +76,22 @@ struct RecommendationsView: View {
     }
 
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        VStack(spacing: AppSpacing.md) {
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 64, height: 64)
+                .foregroundStyle(AppColors.ink.opacity(0.25))
             Text("No movies yet")
                 .font(AppTypography.displaySM)
                 .foregroundStyle(AppColors.ink)
             Text("We couldn't find movies that match this mood.")
                 .font(AppTypography.body)
                 .foregroundStyle(AppColors.ink.opacity(0.6))
+                .multilineTextAlignment(.center)
         }
-        .padding(.top, AppSpacing.xl)
+        .frame(maxWidth: .infinity)
+        .padding(.top, AppSpacing.xxl)
     }
 }
 

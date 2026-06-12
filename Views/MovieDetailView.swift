@@ -14,6 +14,8 @@ struct MovieDetailView: View {
     @State private var isWatched: Bool = false
     @State private var userRating: Int = 0
     @State private var showReviewSheet: Bool = false
+    @State private var showFullReview: Bool = false
+    @State private var hasReview: Bool = false
 
     /// Mock-mode mood lookup. When the API is live this should come
     /// from a shared store (e.g. injected via environment or a VM).
@@ -29,6 +31,7 @@ struct MovieDetailView: View {
                     titleAndMeta
                     description
                     rating
+                    reviewButton
                 }
                 .padding(AppSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -46,9 +49,21 @@ struct MovieDetailView: View {
             syncFavoriteState()
             syncWatchedState()
             syncRatingState()
+            syncReviewState()
         }
         .sheet(isPresented: $showReviewSheet, onDismiss: syncRatingState) {
             ReviewSheet(movie: movie)
+        }
+        .sheet(isPresented: $showFullReview) {
+            NavigationStack {
+                MovieReviewView(movie: movie)
+            }
+        }
+        .onChange(of: showFullReview) { _, isShowing in
+            if !isShowing {
+                syncReviewState()
+                syncRatingState()
+            }
         }
     }
 
@@ -97,27 +112,75 @@ struct MovieDetailView: View {
         } label: {
             HStack(spacing: AppSpacing.sm) {
                 RatingStars(rating: userRating, size: 18)
-                Text(userRating > 0 ? "Tap to edit" : "Tap to rate")
-                    .font(AppTypography.eyebrow)
-                    .textCase(.uppercase)
-                    .foregroundStyle(AppColors.ink.opacity(0.6))
+                Spacer(minLength: 0)
+                Text(userRating > 0 ? "Edit" : "Rate")
+                    .font(AppTypography.label)
+                    .foregroundStyle(AppColors.clypOrange)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.clypOrange)
             }
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.md)
+            .background(AppColors.silverScreen)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var reviewButton: some View {
+        Button {
+            showFullReview = true
+        } label: {
+            HStack(spacing: AppSpacing.sm) {
+                Image(systemName: hasReview ? "doc.text.fill" : "doc.text")
+                    .font(.system(size: 16, weight: .medium))
+                Text(hasReview ? "View Review" : "Write Review")
+                    .font(AppTypography.body)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.clypOrange)
+            }
+            .foregroundStyle(AppColors.ink)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.vertical, AppSpacing.md)
+            .background(AppColors.silverScreen)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
 
+    @ViewBuilder
     private var ctaBar: some View {
-        PrimaryCTAButton(title: isWatched ? "Watched" : "Mark as Watched") {
-            guard !isWatched, let id = movie.id_movie else { return }
-            withAnimation(AppAnimations.favorites) {
+        Group {
+            if isWatched {
+                SecondaryCTAButton(title: "Mark as Unwatched") {
+                    toggleWatched()
+                }
+            } else {
+                PrimaryCTAButton(title: "Mark as Watched") {
+                    toggleWatched()
+                }
+            }
+        }
+        .animation(AppAnimations.tap, value: isWatched)
+        .padding(AppSpacing.lg)
+    }
+
+    private func toggleWatched() {
+        guard let id = movie.id_movie else { return }
+        withAnimation(AppAnimations.favorites) {
+            if isWatched {
+                LocalStorageService.shared.unmarkWatched(id)
+                isWatched = false
+            } else {
                 LocalStorageService.shared.markWatched(id)
                 isWatched = true
             }
         }
-        .disabled(isWatched)
-        .opacity(isWatched ? 0.5 : 1)
-        .animation(AppAnimations.tap, value: isWatched)
-        .padding(AppSpacing.lg)
     }
 
     // MARK: - Favorite
@@ -137,6 +200,12 @@ struct MovieDetailView: View {
         withAnimation(AppAnimations.favorites) {
             LocalStorageService.shared.toggleFavorite(id)
             isFavorite.toggle()
+            
+            // Automáticamente marcar como watched al dar favorito
+            if isFavorite && !isWatched {
+                LocalStorageService.shared.markWatched(id)
+                isWatched = true
+            }
         }
     }
 
@@ -162,6 +231,14 @@ struct MovieDetailView: View {
             return
         }
         userRating = LocalStorageService.shared.rating(for: id) ?? 0
+    }
+    
+    private func syncReviewState() {
+        guard let id = movie.id_movie else {
+            hasReview = false
+            return
+        }
+        hasReview = LocalStorageService.shared.review(for: id) != nil
     }
 }
 

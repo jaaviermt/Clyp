@@ -18,6 +18,12 @@ struct RegisterView: View {
     @State private var nameError: String?
     @State private var emailError: String?
     @State private var passwordError: String?
+    @State private var passwordVisible: Bool = false
+    @FocusState private var focusedField: Field?
+
+    private enum Field: Hashable {
+        case name, email, password
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -37,9 +43,18 @@ struct RegisterView: View {
                 .frame(minHeight: geo.size.height)
                 .frame(maxWidth: .infinity)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .background(AppColors.cream.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focusedField = nil }
+                    .font(AppTypography.label)
+                    .foregroundStyle(AppColors.clypOrange)
+            }
+        }
     }
 
     // MARK: - Sections
@@ -67,6 +82,9 @@ struct RegisterView: View {
                 TextField("Name", text: $name)
                     .textInputAutocapitalization(.words)
                     .textContentType(.name)
+                    .focused($focusedField, equals: .name)
+                    .submitLabel(.next)
+                    .onSubmit { focusedField = .email }
                     .pillField()
                     .onChange(of: name) { _, _ in
                         if nameError != nil {
@@ -85,6 +103,9 @@ struct RegisterView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .textContentType(.emailAddress)
+                    .focused($focusedField, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit { focusedField = .password }
                     .pillField()
                     .onChange(of: email) { _, _ in
                         if emailError != nil {
@@ -98,14 +119,41 @@ struct RegisterView: View {
             }
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                SecureField("Password", text: $password)
-                    .textContentType(.newPassword)
-                    .pillField()
-                    .onChange(of: password) { _, _ in
-                        if passwordError != nil {
-                            withAnimation(AppAnimations.tap) { passwordError = nil }
+                HStack(spacing: AppSpacing.sm) {
+                    Group {
+                        if passwordVisible {
+                            TextField("Password", text: $password)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                        } else {
+                            SecureField("Password", text: $password)
                         }
                     }
+                    .textContentType(.newPassword)
+                    .focused($focusedField, equals: .password)
+                    .submitLabel(.done)
+                    .onSubmit { attemptRegister() }
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.ink)
+
+                    Button {
+                        passwordVisible.toggle()
+                    } label: {
+                        Image(systemName: passwordVisible ? "eye.slash" : "eye")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(AppColors.ink.opacity(0.5))
+                    }
+                    .accessibilityLabel(passwordVisible ? "Hide password" : "Show password")
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.vertical, AppSpacing.md)
+                .background(AppColors.silverScreen)
+                .clipShape(Capsule())
+                .onChange(of: password) { _, _ in
+                    if passwordError != nil {
+                        withAnimation(AppAnimations.tap) { passwordError = nil }
+                    }
+                }
 
                 if let passwordError {
                     errorLabel(passwordError)
@@ -138,11 +186,16 @@ struct RegisterView: View {
     // MARK: - Helpers
 
     private func errorLabel(_ message: String) -> some View {
-        Text(message)
-            .font(AppTypography.bodySM)
-            .foregroundStyle(AppColors.heartbeat)
-            .padding(.leading, AppSpacing.lg)
-            .transition(.opacity)
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(AppColors.heartbeat)
+            Text(message)
+                .font(AppTypography.bodySM)
+                .foregroundStyle(AppColors.ink.opacity(0.8))
+        }
+        .padding(.leading, AppSpacing.lg)
+        .transition(.opacity)
     }
 
     private func attemptRegister() {
@@ -154,12 +207,16 @@ struct RegisterView: View {
 
         guard nameError == nil, emailError == nil, passwordError == nil else { return }
 
+        focusedField = nil
+
         // Real registration via viewModel goes here.
-        // Mock: store the form values, falling back to mockUser for safety.
+        // Mock: store the form values + flag this as a fresh sign-up so
+        // ProfileView greets with "Welcome" instead of "Welcome back".
         let storage = LocalStorageService.shared
         storage.currentUserId    = MockData.mockUser.id_user
         storage.currentUserName  = name.trimmingCharacters(in: .whitespaces)
         storage.currentUserEmail = email.trimmingCharacters(in: .whitespaces)
+        storage.didJustRegister  = true
         onAuthenticated()
     }
 }

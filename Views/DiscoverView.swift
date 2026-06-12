@@ -24,7 +24,6 @@ struct DiscoverView: View {
             logoBar
             header
             content
-            cta
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -34,6 +33,14 @@ struct DiscoverView: View {
         .navigationDestination(isPresented: $showRecommendations) {
             if let mood = selectedMood {
                 RecommendationsView(selectedMood: mood)
+            }
+        }
+        .onChange(of: selectedMood) { _, newMood in
+            if let mood = newMood {
+                if let id = mood.id_mood {
+                    LocalStorageService.shared.lastSelectedMoodId = id
+                }
+                showRecommendations = true
             }
         }
     }
@@ -81,6 +88,11 @@ struct DiscoverView: View {
     private func errorState(_ message: String) -> some View {
         VStack(spacing: AppSpacing.md) {
             Spacer()
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 64, height: 64)
+                .foregroundStyle(AppColors.ink.opacity(0.25))
             Text("Something went wrong")
                 .font(AppTypography.displaySM)
                 .foregroundStyle(AppColors.ink)
@@ -122,22 +134,10 @@ struct DiscoverView: View {
                         )
                     }
                     .buttonStyle(PressableScaleStyle())
+                    .sensoryFeedback(.selection, trigger: selectedMood?.name == mood.name)
                 }
             }
         }
-    }
-
-    private var cta: some View {
-        PrimaryCTAButton(title: "Continue") {
-            guard let mood = selectedMood else { return }
-            if let id = mood.id_mood {
-                LocalStorageService.shared.lastSelectedMoodId = id
-            }
-            showRecommendations = true
-        }
-        .disabled(selectedMood == nil)
-        .opacity(selectedMood == nil ? 0.4 : 1)
-        .animation(AppAnimations.tap, value: selectedMood?.name)
     }
 }
 

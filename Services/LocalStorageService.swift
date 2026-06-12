@@ -21,9 +21,12 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         static let watchedMovieIds    = "clyp.local.watchedMovieIds"
         static let lastSelectedMoodId = "clyp.local.lastSelectedMoodId"
         static let movieRatings       = "clyp.local.movieRatings"
+        static let movieReviews       = "clyp.local.movieReviews"
         static let currentUserId      = "clyp.local.currentUserId"
         static let currentUserName    = "clyp.local.currentUserName"
         static let currentUserEmail   = "clyp.local.currentUserEmail"
+        static let didJustRegister    = "clyp.local.didJustRegister"
+        static let hideWatchedMovies  = "clyp.local.hideWatchedMovies"
     }
 
     // MARK: - Favorites
@@ -116,6 +119,42 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         setRating(0, for: movieId)
     }
 
+    // MARK: - Movie reviews (text + rating)
+
+    /// Retrieve a review for a specific movie
+    func review(for movieId: Int) -> MovieReview? {
+        guard let data = defaults.data(forKey: "\(Key.movieReviews).\(movieId)") else {
+            return nil
+        }
+        return try? JSONDecoder().decode(MovieReview.self, from: data)
+    }
+
+    /// Save or update a review (CREATE/UPDATE)
+    func saveReview(_ review: MovieReview) {
+        guard let data = try? JSONEncoder().encode(review) else { return }
+        defaults.set(data, forKey: "\(Key.movieReviews).\(review.movieId)")
+        
+        // Also update the rating in the ratings dictionary
+        setRating(review.rating, for: review.movieId)
+    }
+
+    /// Delete a review (DELETE)
+    func deleteReview(for movieId: Int) {
+        defaults.removeObject(forKey: "\(Key.movieReviews).\(movieId)")
+        removeRating(for: movieId)
+    }
+
+    /// Get all reviews
+    var allReviews: [MovieReview] {
+        let allKeys = defaults.dictionaryRepresentation().keys
+        let reviewKeys = allKeys.filter { $0.hasPrefix(Key.movieReviews) }
+        
+        return reviewKeys.compactMap { key in
+            guard let data = defaults.data(forKey: key) else { return nil }
+            return try? JSONDecoder().decode(MovieReview.self, from: data)
+        }
+    }
+
     // MARK: - Current user (session)
 
     /// Lightweight session record kept locally so Profile can render
@@ -155,6 +194,21 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         }
     }
 
+    // MARK: - User preferences
+
+    var hideWatchedMovies: Bool {
+        get { defaults.bool(forKey: Key.hideWatchedMovies) }
+        set { defaults.set(newValue, forKey: Key.hideWatchedMovies) }
+    }
+
+    /// Transient flag set by RegisterView and consumed by ProfileView.
+    /// Lets the welcome label say "Welcome" once after sign-up
+    /// instead of always "Welcome back".
+    var didJustRegister: Bool {
+        get { defaults.bool(forKey: Key.didJustRegister) }
+        set { defaults.set(newValue, forKey: Key.didJustRegister) }
+    }
+
     // MARK: - Maintenance
 
     /// Wipes all locally cached preferences.
@@ -167,5 +221,11 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         defaults.removeObject(forKey: Key.currentUserId)
         defaults.removeObject(forKey: Key.currentUserName)
         defaults.removeObject(forKey: Key.currentUserEmail)
+        defaults.removeObject(forKey: Key.didJustRegister)
+        
+        // Clear all reviews
+        let allKeys = defaults.dictionaryRepresentation().keys
+        let reviewKeys = allKeys.filter { $0.hasPrefix(Key.movieReviews) }
+        reviewKeys.forEach { defaults.removeObject(forKey: $0) }
     }
 }

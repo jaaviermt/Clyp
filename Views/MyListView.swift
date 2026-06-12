@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MyListView: View {
+    var refreshToken: UUID = UUID()
+    
     @State private var favoriteIds: Set<Int> = []
     @State private var watchedIds: Set<Int> = []
 
@@ -48,6 +50,7 @@ struct MyListView: View {
         .background(AppColors.cream.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear(perform: refresh)
+        .onChange(of: refreshToken) { _, _ in refresh() }
     }
 
     // MARK: - Sections
@@ -95,15 +98,37 @@ struct MyListView: View {
                     .buttonStyle(PressableScaleStyle())
                 }
             }
+            .padding(.trailing, AppSpacing.xl)
+        }
+        .mask(trailingFadeMask)
+    }
+
+    private var trailingFadeMask: some View {
+        HStack(spacing: 0) {
+            Rectangle()
+            LinearGradient(
+                colors: [.black, .black.opacity(0)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: 32)
         }
     }
 
     private func emptyRow(message: String) -> some View {
-        Text(message)
-            .font(AppTypography.body)
-            .foregroundStyle(AppColors.ink.opacity(0.6))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, AppSpacing.lg)
+        VStack(spacing: AppSpacing.md) {
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 48, height: 48)
+                .foregroundStyle(AppColors.ink.opacity(0.25))
+            Text(message)
+                .font(AppTypography.body)
+                .foregroundStyle(AppColors.ink.opacity(0.6))
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.vertical, AppSpacing.lg)
     }
 
     // MARK: - Helpers
