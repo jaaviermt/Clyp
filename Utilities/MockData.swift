@@ -20,7 +20,7 @@ enum MockData {
 
     static let mockUser = User(
         id_user: 1,
-        name: "Javier Murillo",
+        name: "Javier Marín",
         email: "javier@clyp.app",
         password: "mockpass",
         created_at: "2026-06-01T12:34:56Z"
