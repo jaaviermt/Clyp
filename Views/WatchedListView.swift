@@ -12,7 +12,7 @@ struct WatchedListView: View {
     @Environment(\.dismiss) private var dismiss
     
     private var watchedMovies: [Movie] {
-        MockData.movies.filter {
+        AppData.shared.movies.filter {
             guard let id = $0.id_movie else { return false }
             return watchedIds.contains(id)
         }
@@ -99,7 +99,7 @@ struct WatchedListView: View {
     // MARK: - Helpers
     
     private func moodFor(_ movie: Movie) -> Mood? {
-        MockData.moods.first { $0.id_mood == movie.id_mood }
+        AppData.shared.moods.first { $0.id_mood == movie.id_mood }
     }
     
     private func refresh() {

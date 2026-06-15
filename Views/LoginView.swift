@@ -142,9 +142,15 @@ struct LoginView: View {
 
     private var cta: some View {
         VStack(spacing: AppSpacing.lg) {
-            PrimaryCTAButton(title: "Log In") {
+            if let serverError = viewModel.errorMessage {
+                errorLabel(serverError)
+            }
+
+            PrimaryCTAButton(title: viewModel.isLoading ? "Logging in…" : "Log In") {
                 attemptLogin()
             }
+            .disabled(viewModel.isLoading)
+            .opacity(viewModel.isLoading ? 0.6 : 1)
 
             NavigationLink {
                 RegisterView(onAuthenticated: onAuthenticated)
@@ -177,6 +183,7 @@ struct LoginView: View {
     }
 
     private func attemptLogin() {
+        guard !viewModel.isLoading else { return }
         withAnimation(AppAnimations.tap) {
             emailError    = AuthValidation.emailError(for: email)
             passwordError = AuthValidation.passwordError(for: password)
@@ -186,13 +193,13 @@ struct LoginView: View {
 
         focusedField = nil
 
-        // Real authentication via viewModel goes here.
-        // Mock: persist a session locally so Profile can read it.
-        let user = MockData.mockUser
-        LocalStorageService.shared.currentUserId    = user.id_user
-        LocalStorageService.shared.currentUserName  = user.name
-        LocalStorageService.shared.currentUserEmail = user.email
-        onAuthenticated()
+        Task {
+            let ok = await viewModel.login(
+                email: email.trimmingCharacters(in: .whitespaces),
+                password: password
+            )
+            if ok { onAuthenticated() }
+        }
     }
 }
 

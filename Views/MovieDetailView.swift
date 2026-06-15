@@ -17,10 +17,9 @@ struct MovieDetailView: View {
     @State private var showFullReview: Bool = false
     @State private var hasReview: Bool = false
 
-    /// Mock-mode mood lookup. When the API is live this should come
-    /// from a shared store (e.g. injected via environment or a VM).
+    /// Resolves the movie's mood from the API-backed shared catalog.
     private var resolvedMood: Mood? {
-        MockData.moods.first { $0.id_mood == movie.id_mood }
+        AppData.shared.mood(id: movie.id_mood)
     }
 
     var body: some View {
@@ -174,10 +173,11 @@ struct MovieDetailView: View {
         guard let id = movie.id_movie else { return }
         withAnimation(AppAnimations.favorites) {
             if isWatched {
+                // No "unmark" endpoint on the API yet — local-only.
                 LocalStorageService.shared.unmarkWatched(id)
                 isWatched = false
             } else {
-                LocalStorageService.shared.markWatched(id)
+                Task { await RemoteSync.markWatched(movieId: id) }
                 isWatched = true
             }
         }
@@ -203,7 +203,7 @@ struct MovieDetailView: View {
             
             // Automáticamente marcar como watched al dar favorito
             if isFavorite && !isWatched {
-                LocalStorageService.shared.markWatched(id)
+                Task { await RemoteSync.markWatched(movieId: id) }
                 isWatched = true
             }
         }

@@ -18,7 +18,7 @@ struct MoodCheckinEditSheet: View {
     @State private var selectedMoodId: Int
     @State private var selectedDate: Date
 
-    private let moods = MockData.moods
+    private var moods: [Mood] { AppData.shared.moods }
 
     init(mode: Mode, onSave: @escaping (Int, Date) -> Void, onDismiss: @escaping () -> Void) {
         self.mode = mode
@@ -26,7 +26,7 @@ struct MoodCheckinEditSheet: View {
         self.onDismiss = onDismiss
         switch mode {
         case .create:
-            _selectedMoodId = State(initialValue: MockData.moods.first?.id_mood ?? 1)
+            _selectedMoodId = State(initialValue: AppData.shared.moods.first?.id_mood ?? 1)
             _selectedDate   = State(initialValue: Date())
         case .edit(let checkin):
             _selectedMoodId = State(initialValue: checkin.id_mood)

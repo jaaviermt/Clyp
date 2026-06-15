@@ -61,7 +61,7 @@ struct DebugConfigSheet: View {
                 .font(AppTypography.label)
                 .foregroundStyle(AppColors.ink)
 
-            TextField("https://xxxxx.share.zrok.io/API_Clyp/api", text: $baseURLInput)
+            TextField("https://api-clyp.onrender.com/api", text: $baseURLInput)
                 .keyboardType(.URL)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -72,7 +72,7 @@ struct DebugConfigSheet: View {
                 .background(AppColors.silverScreen)
                 .clipShape(Capsule())
 
-            Text("Format: <host>/API_Clyp/api")
+            Text("Leave empty to use the production backend.")
                 .font(AppTypography.bodySM)
                 .foregroundStyle(AppColors.ink.opacity(0.6))
         }

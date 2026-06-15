@@ -30,7 +30,10 @@ struct SplashView: View {
             }
         }
         .task {
+            // Warm up the catalog from the API while the splash shows.
+            async let preload: Void = AppData.shared.load()
             try? await Task.sleep(for: .seconds(1.5))
+            _ = await preload
             withAnimation(.easeInOut(duration: 0.4)) {
                 stage = .auth
             }

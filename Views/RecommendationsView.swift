@@ -12,7 +12,7 @@ struct RecommendationsView: View {
 
     private var filteredMovies: [Movie] {
         guard let moodId = selectedMood.id_mood else { return [] }
-        let movies = MockData.movies.filter { $0.id_mood == moodId }
+        let movies = AppData.shared.movies.filter { $0.id_mood == moodId }
         guard LocalStorageService.shared.hideWatchedMovies else { return movies }
         let watched = LocalStorageService.shared.watchedMovieIds
         return movies.filter { movie in

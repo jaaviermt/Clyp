@@ -82,6 +82,11 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         watchedMovieIds.contains(movieId)
     }
 
+    /// Replaces the watched cache wholesale (used when syncing from the API).
+    func replaceWatched(_ movieIds: [Int]) {
+        defaults.set(Array(Set(movieIds)), forKey: Key.watchedMovieIds)
+    }
+
     // MARK: - Last selected mood
 
     var lastSelectedMoodId: Int? {
@@ -188,6 +193,13 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
     func deleteCheckin(id: Int) {
         var checkins = allCheckins
         checkins.removeAll { $0.id_checkin == id }
+        if let data = try? JSONEncoder().encode(checkins) {
+            defaults.set(data, forKey: Key.moodCheckins)
+        }
+    }
+
+    /// Replaces the check-in cache wholesale (used when syncing from the API).
+    func replaceCheckins(_ checkins: [MoodCheckin]) {
         if let data = try? JSONEncoder().encode(checkins) {
             defaults.set(data, forKey: Key.moodCheckins)
         }

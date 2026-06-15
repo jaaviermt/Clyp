@@ -14,14 +14,14 @@ struct MyListView: View {
     @State private var watchedIds: Set<Int> = []
 
     private var favoriteMovies: [Movie] {
-        MockData.movies.filter {
+        AppData.shared.movies.filter {
             guard let id = $0.id_movie else { return false }
             return favoriteIds.contains(id)
         }
     }
 
     private var watchedMovies: [Movie] {
-        MockData.movies.filter {
+        AppData.shared.movies.filter {
             guard let id = $0.id_movie else { return false }
             return watchedIds.contains(id)
         }
@@ -134,7 +134,7 @@ struct MyListView: View {
     // MARK: - Helpers
 
     private func moodFor(_ movie: Movie) -> Mood? {
-        MockData.moods.first { $0.id_mood == movie.id_mood }
+        AppData.shared.moods.first { $0.id_mood == movie.id_mood }
     }
 
     private func refresh() {

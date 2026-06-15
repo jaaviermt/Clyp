@@ -19,6 +19,7 @@ struct MoodCheckinHistoryView: View {
             }
         }
         .background(AppColors.cream.ignoresSafeArea())
+        .task { await viewModel.refresh() }
         .navigationTitle("Mood History")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -74,7 +75,7 @@ struct MoodCheckinHistoryView: View {
     }
 
     private func checkinRow(_ checkin: MoodCheckin) -> some View {
-        let mood = MockData.moods.first { $0.id_mood == checkin.id_mood }
+        let mood = AppData.shared.mood(id: checkin.id_mood)
         return HStack(spacing: AppSpacing.md) {
             Circle()
                 .fill(mood?.color ?? AppColors.silverScreen)

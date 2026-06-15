@@ -164,9 +164,15 @@ struct RegisterView: View {
 
     private var cta: some View {
         VStack(spacing: AppSpacing.lg) {
-            PrimaryCTAButton(title: "Create Account") {
+            if let serverError = viewModel.errorMessage {
+                errorLabel(serverError)
+            }
+
+            PrimaryCTAButton(title: viewModel.isLoading ? "Creating…" : "Create Account") {
                 attemptRegister()
             }
+            .disabled(viewModel.isLoading)
+            .opacity(viewModel.isLoading ? 0.6 : 1)
 
             Button {
                 dismiss()
@@ -199,6 +205,7 @@ struct RegisterView: View {
     }
 
     private func attemptRegister() {
+        guard !viewModel.isLoading else { return }
         withAnimation(AppAnimations.tap) {
             nameError     = AuthValidation.nameError(for: name)
             emailError    = AuthValidation.emailError(for: email)
@@ -209,15 +216,14 @@ struct RegisterView: View {
 
         focusedField = nil
 
-        // Real registration via viewModel goes here.
-        // Mock: store the form values + flag this as a fresh sign-up so
-        // ProfileView greets with "Welcome" instead of "Welcome back".
-        let storage = LocalStorageService.shared
-        storage.currentUserId    = MockData.mockUser.id_user
-        storage.currentUserName  = name.trimmingCharacters(in: .whitespaces)
-        storage.currentUserEmail = email.trimmingCharacters(in: .whitespaces)
-        storage.didJustRegister  = true
-        onAuthenticated()
+        Task {
+            let ok = await viewModel.register(
+                name: name.trimmingCharacters(in: .whitespaces),
+                email: email.trimmingCharacters(in: .whitespaces),
+                password: password
+            )
+            if ok { onAuthenticated() }
+        }
     }
 }
 

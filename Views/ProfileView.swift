@@ -205,7 +205,7 @@ struct ProfileView: View {
         userEmail      = storage.currentUserEmail
 
         if let moodId = storage.lastSelectedMoodId {
-            currentMood = MockData.moods.first { $0.id_mood == moodId }
+            currentMood = AppData.shared.mood(id: moodId)
         } else {
             currentMood = nil
         }

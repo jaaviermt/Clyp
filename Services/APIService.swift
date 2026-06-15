@@ -20,19 +20,27 @@ actor APIService {
         self.decoder = JSONDecoder()
     }
 
-    // MARK: - Base URL (dynamic via zrok)
+    // MARK: - Base URL
 
     private static let baseURLKey = "clyp.api.baseURL"
+
+    /// Production backend (Render). The DB lives on Azure behind it.
+    /// Endpoints hang off `/api`, e.g. `/api/mood/getAll`.
+    static let productionBaseURL = "https://api-clyp.onrender.com/api"
 
     static func setBaseURL(_ urlString: String) {
         UserDefaults.standard.set(urlString, forKey: baseURLKey)
     }
 
+    /// Returns the user-overridden URL (Debug sheet) when present,
+    /// otherwise falls back to the production backend.
     static var baseURL: URL? {
-        guard let stored = UserDefaults.standard.string(forKey: baseURLKey) else {
-            return nil
+        let stored = UserDefaults.standard.string(forKey: baseURLKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let stored, !stored.isEmpty {
+            return URL(string: stored)
         }
-        return URL(string: stored)
+        return URL(string: productionBaseURL)
     }
 
     // MARK: - Public API

@@ -39,13 +39,7 @@ struct DiscoverView: View {
             if let mood = newMood {
                 if let id = mood.id_mood {
                     LocalStorageService.shared.lastSelectedMoodId = id
-                    let userId = LocalStorageService.shared.currentUserId ?? 1
-                    LocalStorageService.shared.saveCheckin(MoodCheckin(
-                        id_checkin: nil,
-                        id_user: userId,
-                        id_mood: id,
-                        checkin_time: ISO8601DateFormatter().string(from: Date())
-                    ))
+                    Task { await RemoteSync.createCheckin(moodId: id) }
                 }
                 showRecommendations = true
             }
