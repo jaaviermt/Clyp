@@ -22,6 +22,7 @@ final class AppData {
 
     private(set) var moods: [Mood] = []
     private(set) var movies: [Movie] = []
+    private(set) var genres: [Genre] = []
     private(set) var isLoading = false
 
     private let apiService: APIService
@@ -39,6 +40,7 @@ final class AppData {
         if MockData.useMockData {
             moods = MockData.moods
             movies = MockData.movies
+            genres = MockData.genres
             hasLoaded = true
             return
         }
@@ -48,11 +50,13 @@ final class AppData {
 
         async let fetchedMoods: [Mood] = apiService.fetch(.getAllMoods)
         async let fetchedMovies: [Movie] = apiService.fetch(.getAllMovies)
+        async let fetchedGenres: [Genre] = apiService.fetch(.getAllGenres)
 
         // Catalog comes strictly from the API. On failure the lists stay
         // empty (views render their empty states) — no mock data at runtime.
         if let m = try? await fetchedMoods { moods = m }
         if let mv = try? await fetchedMovies { movies = mv }
+        if let g = try? await fetchedGenres { genres = g }
 
         // Only consider the load "done" once we actually have data, so a
         // transient failure (e.g. Render cold start) can be retried.
@@ -69,4 +73,52 @@ final class AppData {
     func movies(forMood moodId: Int) -> [Movie] {
         movies.filter { $0.id_mood == moodId }
     }
+
+    func genre(id: Int?) -> Genre? {
+        guard let id else { return nil }
+        return genres.first { $0.id_genre == id }
+    }
+
+    // MARK: - Catalog mutation (used by CatalogViewModel)
+    //
+    // These keep the in-memory catalog in sync after a create/update/delete.
+    // `CatalogViewModel` calls the API first; these apply the result (or the
+    // optimistic local copy when the API is unavailable). Because the arrays
+    // are `@Observable`, every view reading `AppData.shared.*` updates at once.
+
+    func upsertMovie(_ movie: Movie) {
+        if let id = movie.id_movie, let idx = movies.firstIndex(where: { $0.id_movie == id }) {
+            movies[idx] = movie
+        } else {
+            movies.append(movie)
+        }
+    }
+
+    func removeMovie(id: Int) { movies.removeAll { $0.id_movie == id } }
+
+    func upsertMood(_ mood: Mood) {
+        if let id = mood.id_mood, let idx = moods.firstIndex(where: { $0.id_mood == id }) {
+            moods[idx] = mood
+        } else {
+            moods.append(mood)
+        }
+    }
+
+    func removeMood(id: Int) { moods.removeAll { $0.id_mood == id } }
+
+    func upsertGenre(_ genre: Genre) {
+        if let id = genre.id_genre, let idx = genres.firstIndex(where: { $0.id_genre == id }) {
+            genres[idx] = genre
+        } else {
+            genres.append(genre)
+        }
+    }
+
+    func removeGenre(id: Int) { genres.removeAll { $0.id_genre == id } }
+
+    /// Next synthetic id for an optimistic local insert (offline fallback),
+    /// so the new row has a stable identity until the server assigns the real one.
+    func nextLocalMovieId() -> Int { (movies.compactMap(\.id_movie).max() ?? 0) + 1 }
+    func nextLocalMoodId()  -> Int { (moods.compactMap(\.id_mood).max() ?? 0) + 1 }
+    func nextLocalGenreId() -> Int { (genres.compactMap(\.id_genre).max() ?? 0) + 1 }
 }

@@ -27,6 +27,7 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: AppSpacing.xl) {
                 header
                 stats
+                manageCatalogLink
                 logoutSection
                     .padding(.top, AppSpacing.xl)
             }
@@ -185,6 +186,41 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+    }
+
+    private var manageCatalogLink: some View {
+        NavigationLink {
+            CatalogManageView()
+        } label: {
+            HStack(spacing: AppSpacing.md) {
+                Image(systemName: "square.stack.3d.up")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(AppColors.clypOrange)
+                    .frame(width: 44, height: 44)
+                    .background(AppColors.cream)
+                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+
+                VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                    Text("Manage Catalog")
+                        .font(AppTypography.label)
+                        .foregroundStyle(AppColors.ink)
+                    Text("Movies, moods & genres")
+                        .font(AppTypography.bodySM)
+                        .foregroundStyle(AppColors.ink.opacity(0.6))
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(AppColors.clypOrange)
+            }
+            .padding(AppSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppColors.silverScreen)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+        }
+        .buttonStyle(.plain)
     }
 
     private var logoutSection: some View {

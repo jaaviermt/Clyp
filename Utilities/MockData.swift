@@ -36,6 +36,15 @@ enum MockData {
         Mood(id_mood: 6, name: "Nostalgic", description: "Memory lane.")
     ]
 
+    static let genres: [Genre] = [
+        Genre(id_genre: 1, name: "Comedy"),
+        Genre(id_genre: 2, name: "Drama"),
+        Genre(id_genre: 3, name: "Action"),
+        Genre(id_genre: 4, name: "Romance"),
+        Genre(id_genre: 5, name: "Thriller"),
+        Genre(id_genre: 6, name: "Adventure")
+    ]
+
     static let movies: [Movie] = [
         Movie(
             id_movie: 1,

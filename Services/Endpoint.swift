@@ -15,14 +15,21 @@ enum HTTPMethod: String {
 }
 
 enum Endpoint {
-    // MARK: Catalog
+    // MARK: Catalog (full CRUD — see Docs/BACKEND_CATALOGO_CRUD.md)
     case getAllMoods
     case saveMood(Mood)
+    case updateMood(Mood)
+    case deleteMood(id_mood: Int)
 
     case getAllMovies
     case saveMovie(Movie)
+    case updateMovie(Movie)
+    case deleteMovie(id_movie: Int)
 
     case getAllGenres
+    case saveGenre(Genre)
+    case updateGenre(Genre)
+    case deleteGenre(id_genre: Int)
 
     // MARK: Users
     case getAllUsers
@@ -60,9 +67,16 @@ enum Endpoint {
         switch self {
         case .getAllMoods:    return "/mood/getAll"
         case .saveMood:       return "/mood/save"
+        case .updateMood:     return "/mood/update"
+        case .deleteMood(let id): return "/mood/delete/\(id)"
         case .getAllMovies:   return "/movie/getAll"
         case .saveMovie:      return "/movie/save"
+        case .updateMovie:    return "/movie/update"
+        case .deleteMovie(let id): return "/movie/delete/\(id)"
         case .getAllGenres:   return "/genre/getAll"
+        case .saveGenre:      return "/genre/save"
+        case .updateGenre:    return "/genre/update"
+        case .deleteGenre(let id): return "/genre/delete/\(id)"
 
         case .getAllUsers:    return "/user/getAll"
         case .saveUser:       return "/user/save"
@@ -104,14 +118,16 @@ enum Endpoint {
              .getFavoritesByUser, .getReviewsByUser, .getReviewByUserAndMovie:
             return .get
 
-        case .saveMood, .saveMovie, .saveUser, .loginUser,
+        case .saveMood, .saveMovie, .saveGenre, .saveUser, .loginUser,
              .saveCheckin, .saveWatched, .saveFavorite, .saveReview:
             return .post
 
-        case .updateUser, .updateCheckin, .updateReview:
+        case .updateMood, .updateMovie, .updateGenre,
+             .updateUser, .updateCheckin, .updateReview:
             return .put
 
-        case .deleteUser, .deleteCheckin, .deleteWatched,
+        case .deleteMood, .deleteMovie, .deleteGenre,
+             .deleteUser, .deleteCheckin, .deleteWatched,
              .deleteFavorite, .deleteReview:
             return .delete
         }
@@ -124,14 +140,17 @@ enum Endpoint {
              .getAllUsers, .getAllCheckins, .getCheckinsByUser,
              .getAllWatched, .getWatchedByUser,
              .getFavoritesByUser, .getReviewsByUser, .getReviewByUserAndMovie,
+             .deleteMood, .deleteMovie, .deleteGenre,
              .deleteUser, .deleteCheckin, .deleteWatched,
              .deleteFavorite, .deleteReview:
             return nil
 
-        case .saveMood(let mood):
+        case .saveMood(let mood), .updateMood(let mood):
             return try encoder.encode(mood)
-        case .saveMovie(let movie):
+        case .saveMovie(let movie), .updateMovie(let movie):
             return try encoder.encode(movie)
+        case .saveGenre(let genre), .updateGenre(let genre):
+            return try encoder.encode(genre)
         case .saveUser(let user):
             return try encoder.encode(user)
         case .loginUser(let email, let password):
