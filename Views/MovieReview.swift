@@ -7,7 +7,7 @@
 
 import Foundation
 
-nonisolated struct MovieReview: Codable {
+nonisolated struct MovieReview: Codable, Identifiable {
     let movieId: Int
     let text: String
     let rating: Int
@@ -15,6 +15,8 @@ nonisolated struct MovieReview: Codable {
     /// Server-side identifier (`review.id_review`). `nil` until the review
     /// has been created on the backend; needed to call update/delete.
     let id_review: Int?
+
+    var id: Int { movieId }
 
     init(movieId: Int, text: String, rating: Int, createdAt: Date, id_review: Int? = nil) {
         self.movieId = movieId

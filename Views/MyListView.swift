@@ -12,11 +12,14 @@ struct MyListView: View {
     
     @State private var favoriteIds: Set<Int> = []
     @State private var watchedIds: Set<Int> = []
+    @State private var hideWatched: Bool = false
 
     private var favoriteMovies: [Movie] {
         AppData.shared.movies.filter {
             guard let id = $0.id_movie else { return false }
-            return favoriteIds.contains(id)
+            guard favoriteIds.contains(id) else { return false }
+            // When the preference is on, watched titles are hidden here too.
+            return !(hideWatched && watchedIds.contains(id))
         }
     }
 
@@ -38,11 +41,13 @@ struct MyListView: View {
                     emptyMessage: "Tap the heart on a movie to save it here."
                 )
 
-                section(
-                    title: "Watched",
-                    movies: watchedMovies,
-                    emptyMessage: "Mark a movie as watched to see it here."
-                )
+                if !hideWatched {
+                    section(
+                        title: "Watched",
+                        movies: watchedMovies,
+                        emptyMessage: "Mark a movie as watched to see it here."
+                    )
+                }
             }
             .padding(AppSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -140,6 +145,7 @@ struct MyListView: View {
     private func refresh() {
         favoriteIds = LocalStorageService.shared.favoriteMovieIds
         watchedIds  = LocalStorageService.shared.watchedMovieIds
+        hideWatched = LocalStorageService.shared.hideWatchedMovies
     }
 }
 

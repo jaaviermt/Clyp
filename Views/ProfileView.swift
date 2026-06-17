@@ -13,6 +13,7 @@ struct ProfileView: View {
 
     @State private var watchedCount: Int = 0
     @State private var favoritesCount: Int = 0
+    @State private var reviewsCount: Int = 0
     @State private var checkinCount: Int = 0
     @State private var currentMood: Mood?
     @State private var userName: String?
@@ -117,6 +118,13 @@ struct ProfileView: View {
                 .buttonStyle(.plain)
             }
             NavigationLink {
+                ReviewsListView()
+            } label: {
+                statCard(value: "\(reviewsCount)", label: "Reviews")
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
                 MoodCheckinHistoryView()
             } label: {
                 currentMoodCard
@@ -200,6 +208,7 @@ struct ProfileView: View {
         let storage = LocalStorageService.shared
         watchedCount   = storage.watchedMovieIds.count
         favoritesCount = storage.favoriteMovieIds.count
+        reviewsCount   = storage.allReviews.filter { !$0.text.isEmpty }.count
         checkinCount   = storage.allCheckins.count
         userName       = storage.currentUserName
         userEmail      = storage.currentUserEmail

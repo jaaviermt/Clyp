@@ -91,6 +91,7 @@ struct ReviewSheet: View {
         let value = rating
         let existingText = LocalStorageService.shared.review(for: id)?.text
         LocalStorageService.shared.setRating(value, for: id)
+        LocalStorageService.shared.markWatched(id)   // optimistic, so the detail CTA updates at once
         Task { await RemoteSync.saveReview(movieId: id, text: existingText, rating: value) }
         dismiss()
     }

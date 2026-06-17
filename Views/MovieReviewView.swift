@@ -177,6 +177,8 @@ struct MovieReviewView: View {
         let text = reviewText.trimmingCharacters(in: .whitespaces)
         let value = rating
 
+        LocalStorageService.shared.markWatched(movieId)   // optimistic, so the detail CTA updates at once
+
         // CREATE or UPDATE through the API (mirrors into the local cache):
         // `POST /review/save` when new, `PUT /review/update` when editing.
         Task { await RemoteSync.saveReview(movieId: movieId, text: text, rating: value) }

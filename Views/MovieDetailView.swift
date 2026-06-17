@@ -119,11 +119,11 @@ struct MovieDetailView: View {
             showReviewSheet = true
         } label: {
             HStack(spacing: AppSpacing.sm) {
-                RatingStars(rating: userRating, size: 18)
-                Spacer(minLength: 0)
                 Text(userRating > 0 ? "Edit" : "Rate")
                     .font(AppTypography.label)
                     .foregroundStyle(AppColors.clypOrange)
+                RatingStars(rating: userRating, size: 18)
+                Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(AppColors.clypOrange)
