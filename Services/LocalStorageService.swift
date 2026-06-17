@@ -52,6 +52,11 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
         favoriteMovieIds.contains(movieId)
     }
 
+    /// Replaces the favorites cache wholesale (used when syncing from the API).
+    func replaceFavorites(_ movieIds: [Int]) {
+        defaults.set(Array(Set(movieIds)), forKey: Key.favoriteMovieIds)
+    }
+
     func toggleFavorite(_ movieId: Int) {
         if isFavorite(movieId) {
             removeFavorite(movieId)
@@ -148,6 +153,16 @@ nonisolated final class LocalStorageService: @unchecked Sendable {
     func deleteReview(for movieId: Int) {
         defaults.removeObject(forKey: "\(Key.movieReviews).\(movieId)")
         removeRating(for: movieId)
+    }
+
+    /// Replaces the review cache wholesale (used when syncing from the API).
+    /// Clears every stored review, then writes the supplied ones and mirrors
+    /// their ratings into the ratings dictionary.
+    func replaceReviews(_ reviews: [MovieReview]) {
+        let allKeys = defaults.dictionaryRepresentation().keys
+        allKeys.filter { $0.hasPrefix(Key.movieReviews) }
+            .forEach { defaults.removeObject(forKey: $0) }
+        reviews.forEach { saveReview($0) }
     }
 
     /// Get all reviews

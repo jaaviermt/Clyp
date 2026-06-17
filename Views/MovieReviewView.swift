@@ -173,36 +173,23 @@ struct MovieReviewView: View {
     
     private func saveReview() {
         guard let movieId = movie.id_movie else { return }
-        
-        let review = MovieReview(
-            movieId: movieId,
-            text: reviewText.trimmingCharacters(in: .whitespaces),
-            rating: rating,
-            createdAt: Date()
-        )
-        
-        // CREATE or UPDATE operation
-        LocalStorageService.shared.saveReview(review)
-        
-        // TODO: When API is ready, call createReview or updateReview endpoint
-        // if hasExistingReview {
-        //     await viewModel.updateReview(review)
-        // } else {
-        //     await viewModel.createReview(review)
-        // }
-        
+
+        let text = reviewText.trimmingCharacters(in: .whitespaces)
+        let value = rating
+
+        // CREATE or UPDATE through the API (mirrors into the local cache):
+        // `POST /review/save` when new, `PUT /review/update` when editing.
+        Task { await RemoteSync.saveReview(movieId: movieId, text: text, rating: value) }
+
         dismiss()
     }
-    
+
     private func deleteReview() {
         guard let movieId = movie.id_movie else { return }
-        
-        // DELETE operation
-        LocalStorageService.shared.deleteReview(for: movieId)
-        
-        // TODO: When API is ready, call deleteReview endpoint
-        // await viewModel.deleteReview(movieId: movieId)
-        
+
+        // DELETE through the API (`DELETE /review/delete/{id}`), then locally.
+        Task { await RemoteSync.deleteReview(movieId: movieId) }
+
         dismiss()
     }
 }

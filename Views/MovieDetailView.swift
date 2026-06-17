@@ -50,8 +50,15 @@ struct MovieDetailView: View {
             syncRatingState()
             syncReviewState()
         }
-        .sheet(isPresented: $showReviewSheet, onDismiss: syncRatingState) {
+        .sheet(isPresented: $showReviewSheet) {
             ReviewSheet(movie: movie)
+        }
+        .onChange(of: showReviewSheet) { _, isShowing in
+            if !isShowing {
+                // Rating may have marked the movie as watched.
+                syncRatingState()
+                syncWatchedState()
+            }
         }
         .sheet(isPresented: $showFullReview) {
             NavigationStack {
@@ -60,8 +67,10 @@ struct MovieDetailView: View {
         }
         .onChange(of: showFullReview) { _, isShowing in
             if !isShowing {
+                // Writing a review may have marked the movie as watched.
                 syncReviewState()
                 syncRatingState()
+                syncWatchedState()
             }
         }
     }
@@ -173,8 +182,7 @@ struct MovieDetailView: View {
         guard let id = movie.id_movie else { return }
         withAnimation(AppAnimations.favorites) {
             if isWatched {
-                // No "unmark" endpoint on the API yet — local-only.
-                LocalStorageService.shared.unmarkWatched(id)
+                Task { await RemoteSync.unmarkWatched(movieId: id) }
                 isWatched = false
             } else {
                 Task { await RemoteSync.markWatched(movieId: id) }
@@ -197,14 +205,21 @@ struct MovieDetailView: View {
 
     private func toggleFavorite() {
         guard let id = movie.id_movie else { return }
+        let willFavorite = !isFavorite
         withAnimation(AppAnimations.favorites) {
-            LocalStorageService.shared.toggleFavorite(id)
-            isFavorite.toggle()
-            
+            isFavorite = willFavorite
+
             // Automáticamente marcar como watched al dar favorito
-            if isFavorite && !isWatched {
-                Task { await RemoteSync.markWatched(movieId: id) }
+            if willFavorite && !isWatched {
                 isWatched = true
+            }
+        }
+        Task {
+            if willFavorite {
+                await RemoteSync.addFavorite(movieId: id)
+                if isWatched { await RemoteSync.markWatched(movieId: id) }
+            } else {
+                await RemoteSync.removeFavorite(movieId: id)
             }
         }
     }

@@ -41,7 +41,7 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showEditProfile) {
             NavigationStack {
-                ProfileEditView()
+                ProfileEditView(onAccountDeleted: onLogout)
             }
         }
         .onChange(of: showEditProfile) { _, isShowing in

@@ -37,31 +37,30 @@ final class MoodCheckinViewModel {
         }
     }
 
-    // NOTE: The deployed API has no update/delete endpoint for check-ins,
-    // so these edit the local cache only. They take effect immediately and
-    // persist for the session; a fresh launch re-syncs from the server.
+    // Edits go through the API (`PUT /checkin/update`, `DELETE /checkin/delete`)
+    // and mirror into the local cache; the UI refreshes once they complete.
 
     func updateCheckin(_ checkin: MoodCheckin, newMoodId: Int, newDate: Date) {
-        storage.saveCheckin(MoodCheckin(
-            id_checkin: checkin.id_checkin,
-            id_user: checkin.id_user,
-            id_mood: newMoodId,
-            checkin_time: ISO8601DateFormatter().string(from: newDate)
-        ))
-        load()
+        Task {
+            await RemoteSync.updateCheckin(checkin, newMoodId: newMoodId, newDate: newDate)
+            load()
+        }
     }
 
     func deleteCheckin(id: Int) {
-        storage.deleteCheckin(id: id)
-        load()
+        Task {
+            await RemoteSync.deleteCheckin(id: id)
+            load()
+        }
     }
 
     func deleteCheckins(at offsets: IndexSet) {
-        offsets.forEach { idx in
-            if let id = checkins[idx].id_checkin {
-                storage.deleteCheckin(id: id)
+        let ids = offsets.compactMap { checkins[$0].id_checkin }
+        Task {
+            for id in ids {
+                await RemoteSync.deleteCheckin(id: id)
             }
+            load()
         }
-        load()
     }
 }

@@ -8,21 +8,26 @@
 import SwiftUI
 
 struct ProfileEditView: View {
+    /// Called after the account is deleted so the app can return to auth.
+    var onAccountDeleted: () -> Void = {}
+
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var name: String
     @State private var email: String
     @State private var hideWatched: Bool
     @State private var nameError: String?
     @State private var emailError: String?
     @State private var showDeleteConfirmation = false
+    @State private var isSaving = false
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
         case name, email
     }
 
-    init() {
+    init(onAccountDeleted: @escaping () -> Void = {}) {
+        self.onAccountDeleted = onAccountDeleted
         let storage = LocalStorageService.shared
         _name        = State(initialValue: storage.currentUserName ?? "")
         _email       = State(initialValue: storage.currentUserEmail ?? "")
@@ -203,31 +208,45 @@ struct ProfileEditView: View {
             nameError = AuthValidation.nameError(for: name)
             emailError = AuthValidation.emailError(for: email)
         }
-        
-        guard nameError == nil, emailError == nil else { return }
-        
-        // UPDATE operation - Save to storage
-        let storage = LocalStorageService.shared
-        storage.currentUserName    = name.trimmingCharacters(in: .whitespaces)
-        storage.currentUserEmail   = email.trimmingCharacters(in: .whitespaces)
-        storage.hideWatchedMovies  = hideWatched
 
-        // TODO: When API is ready, call updateProfile endpoint
-        // await viewModel.updateProfile(name: name, email: email)
-        
+        guard nameError == nil, emailError == nil, !isSaving else { return }
+
+        let trimmedName  = name.trimmingCharacters(in: .whitespaces)
+        let trimmedEmail = email.trimmingCharacters(in: .whitespaces)
         focusedField = nil
-        dismiss()
+        isSaving = true
+
+        // Local-only preference; persists immediately.
+        LocalStorageService.shared.hideWatchedMovies = hideWatched
+
+        // UPDATE via `PUT /user/update`; the local session is refreshed there.
+        Task {
+            do {
+                try await RemoteSync.updateUser(name: trimmedName, email: trimmedEmail)
+                isSaving = false
+                dismiss()
+            } catch NetworkError.statusCode(409) {
+                isSaving = false
+                withAnimation(AppAnimations.tap) {
+                    emailError = "Ese email ya está en uso."
+                }
+            } catch {
+                isSaving = false
+                withAnimation(AppAnimations.tap) {
+                    emailError = "No pudimos guardar los cambios. Revisa tu conexión."
+                }
+            }
+        }
     }
-    
+
     private func deleteAccount() {
-        // DELETE operation - Clear all user data
-        LocalStorageService.shared.clearAll()
-        
-        // TODO: When API is ready, call deleteAccount endpoint
-        // await viewModel.deleteAccount()
-        
-        // Navigate back to auth screen
-        dismiss()
+        // DELETE via `DELETE /user/delete/{id}` (cascades on the server),
+        // then wipe local data and return to the auth screen.
+        Task {
+            await RemoteSync.deleteAccount()
+            dismiss()
+            onAccountDeleted()
+        }
     }
 }
 

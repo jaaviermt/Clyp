@@ -84,7 +84,20 @@ struct ReviewSheet: View {
 
     private func save() {
         guard let id = movie.id_movie else { return }
-        LocalStorageService.shared.setRating(rating, for: id)
+
+        // Rating a movie implies you watched it (you can't rate what you
+        // haven't seen). Marking watched is safe even with no rating.
+        let value = rating
+        if let existing = LocalStorageService.shared.review(for: id) {
+            // A full review already exists: update its rating on the API
+            // (this also marks the movie as watched).
+            Task { await RemoteSync.saveReview(movieId: id, text: existing.text, rating: value) }
+        } else {
+            // Quick rating with no text. A backend Review requires text, so the
+            // rating stays local; the watched state is still synced.
+            LocalStorageService.shared.setRating(value, for: id)
+            Task { await RemoteSync.markWatched(movieId: id) }
+        }
         dismiss()
     }
 }
