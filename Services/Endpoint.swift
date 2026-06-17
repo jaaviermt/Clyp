@@ -52,8 +52,8 @@ enum Endpoint {
     // MARK: Reviews (§7.5)
     case getReviewsByUser(id_user: Int)
     case getReviewByUserAndMovie(id_user: Int, id_movie: Int)
-    case saveReview(id_user: Int, id_movie: Int, text: String, rating: Int)
-    case updateReview(id_review: Int, text: String, rating: Int)
+    case saveReview(id_user: Int, id_movie: Int, text: String?, rating: Int)
+    case updateReview(id_review: Int, text: String?, rating: Int)
     case deleteReview(id_review: Int)
 
     nonisolated var path: String {
@@ -194,17 +194,18 @@ private nonisolated struct UserUpdateBody: Encodable {
     let email: String
 }
 
-/// Body for `POST /review/save`.
+/// Body for `POST /review/save`. A nil `text` is omitted from the JSON, so the
+/// server stores a rating with no written review.
 private nonisolated struct ReviewSaveBody: Encodable {
     let id_user: Int
     let id_movie: Int
-    let text: String
+    let text: String?
     let rating: Int
 }
 
 /// Body for `PUT /review/update`.
 private nonisolated struct ReviewUpdateBody: Encodable {
     let id_review: Int
-    let text: String
+    let text: String?
     let rating: Int
 }

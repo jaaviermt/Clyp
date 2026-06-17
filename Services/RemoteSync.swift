@@ -152,13 +152,13 @@ enum RemoteSync {
 
     // MARK: - Reviews
 
-    /// Creates or updates a full review (text + rating) and mirrors it locally.
-    /// Uses `PUT /review/update` when the movie already has a server review,
-    /// otherwise `POST /review/save`.
+    /// Creates or updates a review (rating + optional text) and mirrors it
+    /// locally. Uses `PUT /review/update` when the movie already has a server
+    /// review, otherwise `POST /review/save`.
     ///
     /// Rating or reviewing a movie implies you watched it, so the movie is
     /// also marked as watched (a movie can still be watched without a rating).
-    static func saveReview(movieId: Int, text: String, rating: Int) async {
+    static func saveReview(movieId: Int, text: String?, rating: Int) async {
         let userId = storage.currentUserId ?? 1
         let existingId = storage.review(for: movieId)?.id_review
 
@@ -176,7 +176,7 @@ enum RemoteSync {
         // Fallback: keep the edit locally so the UI reflects it immediately.
         storage.saveReview(MovieReview(
             movieId: movieId,
-            text: text,
+            text: text ?? "",
             rating: rating,
             createdAt: Date(),
             id_review: existingId
@@ -220,7 +220,7 @@ enum RemoteSync {
         let date = review.created_at.flatMap(iso.date(from:)) ?? Date()
         return MovieReview(
             movieId: review.id_movie,
-            text: review.text,
+            text: review.text ?? "",
             rating: review.rating,
             createdAt: date,
             id_review: review.id_review

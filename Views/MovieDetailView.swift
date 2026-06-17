@@ -253,7 +253,9 @@ struct MovieDetailView: View {
             hasReview = false
             return
         }
-        hasReview = LocalStorageService.shared.review(for: id) != nil
+        // A written review (non-empty text), as opposed to a rating-only entry.
+        let text = LocalStorageService.shared.review(for: id)?.text
+        hasReview = !(text?.isEmpty ?? true)
     }
 }
 
